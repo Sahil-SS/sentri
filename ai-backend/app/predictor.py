@@ -2,6 +2,7 @@ from app.model_loader import (
     model,
     feature_columns
 )
+
 from app.feature_engineering import (
     create_feature_vector
 )
@@ -18,7 +19,7 @@ from app.explanations import (
 def predict_risk(request):
 
     # --------------------------------------
-    # Create feature vector
+    # Feature engineering
     # --------------------------------------
 
     features = create_feature_vector(
@@ -45,7 +46,7 @@ def predict_risk(request):
     )
 
     # --------------------------------------
-    # Determine severity
+    # Severity levels
     # --------------------------------------
 
     if probability < 30:
@@ -61,26 +62,39 @@ def predict_risk(request):
         severity = "high"
 
     # --------------------------------------
-    # Generate explanations
+    # Explainability
     # --------------------------------------
 
     explanations = generate_explanations(
         features
     )
 
+    # --------------------------------------
+    # Final response
+    # --------------------------------------
+
     return {
 
-        "patient_id": str(request.patient_id),
+        "patient_id": str(
+            request.patient_id
+        ),
 
         "risk_score": float(
-        round(probability, 2)
-    ),
+            round(probability, 2)
+        ),
 
+        "severity": str(
+            severity
+        ),
 
-        "severity": str(severity),
+        "window_size": int(
+            len(request.vitals_window)
+        ),
 
-         "explanations": [
-        str(exp)
-        for exp in explanations
-    ]
+        "explanations": [
+
+            str(exp)
+
+            for exp in explanations
+        ]
     }

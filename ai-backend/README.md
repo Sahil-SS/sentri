@@ -75,11 +75,13 @@ The model uses:
 - baseline comparisons
 
 Instead of:
+
 ```text
 single snapshot prediction
 ```
 
 it performs:
+
 ```text
 continuous deterioration analysis
 ```
@@ -176,6 +178,7 @@ Only ~2% sepsis cases existed.
 
 Solution:
 Used:
+
 ```python
 scale_pos_weight
 ```
@@ -225,7 +228,10 @@ Simulator / Hardware
 ↓
 Node.js Backend
 ↓
-Rolling Window Buffer
+MongoDB
+(continuous vitals storage)
+↓
+Node.js fetches latest 6 vitals
 ↓
 FastAPI AI Backend
 ↓
@@ -238,24 +244,44 @@ Frontend Dashboard
 
 ---
 
+# MongoDB Temporal Storage
+
+MongoDB acts as the temporal storage layer for the entire system.
+
+Incoming streaming vitals are continuously stored inside MongoDB.
+
+Node.js fetches:
+- latest 6 readings
+- sorted by timestamp
+- reversed into oldest → newest order
+
+before sending them to FastAPI.
+
+This architecture:
+- preserves temporal continuity
+- supports historical analytics
+- enables replay visualization
+- supports scalable multi-patient inference
+- avoids in-memory backend state management
+
+---
+
 # Why Feature Engineering Happens in FastAPI
 
-Feature engineering was intentionally placed inside FastAPI because:
-- centralized ML logic
-- easier maintenance
-- easier retraining
-- prevents duplicate logic in Node.js
-- easier deployment
+Node.js responsibilities:
+- store incoming streaming vitals in MongoDB
+- fetch latest 6 vitals for each patient
+- reverse temporal order correctly
+- fetch patient medical history
+- send rolling windows to FastAPI
 
-Node.js only sends:
-- raw rolling vitals
-- patient history
-
-FastAPI computes:
-- slopes
-- acceleration
-- baseline deviation
-- temporal features
+FastAPI responsibilities:
+- temporal feature engineering
+- slope analysis
+- acceleration analysis
+- baseline deviation analysis
+- XGBoost inference
+- explainability generation
 
 ---
 
@@ -308,9 +334,13 @@ source venv/bin/activate
 ```bash
 pip install fastapi uvicorn pandas numpy scikit-learn xgboost joblib python-multipart
 ```
+
+OR
+
 ```bash
-pip install requirement.txt 
+pip install -r requirements.txt
 ```
+
 ---
 
 # Starting the Server
@@ -455,6 +485,7 @@ POST http://localhost:8080/predict
   "patient_id": "P1001",
   "risk_score": 54.4,
   "severity": "medium",
+  "window_size": 6,
   "explanations": [
     "Heart rate rising steadily",
     "Oxygen saturation decreasing",
@@ -514,6 +545,7 @@ raw → JSON
 ```
 
 Paste the request payload and click:
+
 ```text
 Send
 ```
@@ -524,13 +556,15 @@ Send
 
 Completed:
 - temporal monitoring
-- rolling inference
+- rolling window inference
+- MongoDB temporal storage
 - acceleration analysis
 - baseline-aware prediction
 - explainability generation
 - FastAPI inference backend
 - Postman testing
-- real-time compatible architecture
+- real-time streaming architecture
+- Node.js + FastAPI integration design
 
 ---
 
