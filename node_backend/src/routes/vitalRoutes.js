@@ -1,10 +1,9 @@
 const express = require("express");
+
+const { addVitals } = require("../controllers/vitalController");
+
 const router = express.Router();
 
-const {
-  receiveVitals,
-} = require("../controllers/vitalsController");
-
-router.post("/", receiveVitals);
+router.post("/", addVitals);
 
 module.exports = router;

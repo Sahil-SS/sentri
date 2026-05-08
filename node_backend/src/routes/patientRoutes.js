@@ -4,9 +4,9 @@ const multer = require("multer");
 
 const {
   registerPatient,
-} = require(
-  "../controllers/patientController"
-);
+  getAllPatients,
+  getSinglePatient,
+} = require("../controllers/patientController");
 
 const router = express.Router();
 
@@ -14,10 +14,22 @@ const upload = multer({
   dest: "src/uploads/",
 });
 
-router.post(
-  "/register",
-  upload.single("file"),
-  registerPatient
-);
+// -------------------
+// REGISTER
+// -------------------
+
+router.post("/register", upload.single("file"), registerPatient);
+
+// -------------------
+// GET ALL PATIENTS
+// -------------------
+
+router.get("/", getAllPatients);
+
+// -------------------
+// GET SINGLE PATIENT
+// -------------------
+
+router.get("/:patientId", getSinglePatient);
 
 module.exports = router;
