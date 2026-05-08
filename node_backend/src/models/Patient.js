@@ -1,14 +1,15 @@
 const mongoose = require("mongoose");
 
 const patientSchema = new mongoose.Schema({
-
   patient_id: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
 
   age: Number,
+
+  age_60_plus: Number,
 
   diabetes: Number,
 
@@ -24,10 +25,7 @@ const patientSchema = new mongoose.Schema({
 
   baseline_dbp: Number,
 
-  bmi: Number
+  bmi: Number,
 });
 
-module.exports = mongoose.model(
-  "Patient",
-  patientSchema
-);
+module.exports = mongoose.model("Patient", patientSchema);
