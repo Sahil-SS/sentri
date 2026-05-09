@@ -1,0 +1,100 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding-inline: 20px;
+
+  font-family: var(--f-cond);
+  font-size: 14px;
+  font-weight: 700;
+
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+
+  white-space: nowrap;
+
+  border-radius: 0;
+}
+
+/* ─────────────────────────────────────── */
+/* PRIMARY CRIMSON */
+/* ─────────────────────────────────────── */
+
+.btn-primary-crit {
+  height: 48px;
+
+  border: 1px solid var(--crimson);
+  background: var(--crimson-lo);
+  color: var(--crimson);
+}
+
+.btn-primary-crit:hover {
+  background: var(--crimson);
+  color: var(--void);
+}
+
+/* ─────────────────────────────────────── */
+/* PRIMARY AMBER */
+/* ─────────────────────────────────────── */
+
+.btn-primary-amb {
+  height: 48px;
+
+  border: 1px solid var(--amber);
+  background: var(--amber-lo);
+  color: var(--amber);
+}
+
+.btn-primary-amb:hover {
+  background: var(--amber);
+  color: var(--void);
+}
+
+/* ─────────────────────────────────────── */
+/* SECONDARY */
+/* ─────────────────────────────────────── */
+
+.btn-secondary {
+  height: 40px;
+
+  border: 1px solid var(--l01);
+
+  background: transparent;
+  color: var(--t01);
+}
+
+.btn-secondary:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+/* ─────────────────────────────────────── */
+/* GHOST */
+/* ─────────────────────────────────────── */
+
+.btn-ghost {
+  height: 36px;
+
+  color: var(--t02);
+}
+
+.btn-ghost:hover {
+  color: var(--amber);
+}
+
+/* ─────────────────────────────────────── */
+/* MOBILE */
+/* ─────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .btn {
+    width: 100%;
+  }
+}

@@ -1,0 +1,27 @@
+.panel {
+  position: relative;
+
+  border-radius: 0;
+
+  overflow: hidden;
+}
+
+.panel-standard {
+  background: var(--s01);
+  border: 1px solid var(--l01);
+}
+
+.panel-elevated {
+  background: var(--s02);
+  border: 1px solid var(--l01);
+}
+
+.panel-amber {
+  background: var(--amber-glow);
+  border: 1px solid var(--l-amber);
+}
+
+.panel-crit {
+  background: var(--crimson-glow);
+  border: 1px solid var(--l-crit);
+}

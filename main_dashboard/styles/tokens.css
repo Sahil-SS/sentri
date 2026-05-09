@@ -1,0 +1,152 @@
+:root {
+  /* ───────────────────────── */
+  /* CORE COLORS */
+  /* ───────────────────────── */
+
+  --void: #080A0F;
+  --bone: #C8C4B7;
+  --amber: #D4810A;
+  --crimson: #C42B2B;
+
+  /* ───────────────────────── */
+  /* SURFACES */
+  /* ───────────────────────── */
+
+  --s00: #080A0F;
+  --s01: #0D1017;
+  --s02: #111520;
+  --s03: #161C2A;
+  --s04: #1C2233;
+  --s05: #20283C;
+
+  /* ───────────────────────── */
+  /* TEXT */
+  /* ───────────────────────── */
+
+  --t00: #C8C4B7;
+  --t01: rgba(200, 196, 183, 0.65);
+  --t02: rgba(200, 196, 183, 0.35);
+  --t03: rgba(200, 196, 183, 0.18);
+  --t04: rgba(200, 196, 183, 0.08);
+
+  /* ───────────────────────── */
+  /* AMBER */
+  /* ───────────────────────── */
+
+  --amber-hi: #E8950F;
+  --amber-lo: rgba(212, 129, 10, 0.15);
+  --amber-glow: rgba(212, 129, 10, 0.08);
+  --amber-text: rgba(212, 129, 10, 0.90);
+
+  /* ───────────────────────── */
+  /* CRIMSON */
+  /* ───────────────────────── */
+
+  --crimson-hi: #D43535;
+  --crimson-lo: rgba(196, 43, 43, 0.12);
+  --crimson-glow: rgba(196, 43, 43, 0.06);
+  --crimson-text: rgba(196, 43, 43, 0.90);
+
+  /* ───────────────────────── */
+  /* BORDERS */
+  /* ───────────────────────── */
+
+  --l00: rgba(200, 196, 183, 0.06);
+  --l01: rgba(200, 196, 183, 0.12);
+  --l02: rgba(200, 196, 183, 0.24);
+
+  --l-amber: rgba(212, 129, 10, 0.30);
+  --l-crit: rgba(196, 43, 43, 0.40);
+
+  /* ───────────────────────── */
+  /* TYPOGRAPHY */
+  /* ───────────────────────── */
+
+  --f-mono: "IBM Plex Mono", monospace;
+  --f-cond: "Barlow Condensed", sans-serif;
+
+  /* Monument Scale */
+
+  --ts-monument: clamp(80px, 14vw, 200px);
+  --ts-hero-title: clamp(48px, 7vw, 96px);
+  --ts-hero-sub: clamp(18px, 2.5vw, 28px);
+
+  /* Sections */
+
+  --ts-section-num: clamp(60px, 8vw, 120px);
+  --ts-section-head: clamp(28px, 4vw, 52px);
+
+  /* Body */
+
+  --ts-body-lg: 18px;
+  --ts-body: 15px;
+  --ts-body-sm: 13px;
+
+  /* ───────────────────────── */
+  /* SPACING */
+  /* ───────────────────────── */
+
+  --sp1: 6px;
+  --sp2: 12px;
+  --sp3: 18px;
+  --sp4: 24px;
+  --sp5: 36px;
+  --sp6: 48px;
+  --sp7: 72px;
+  --sp8: 96px;
+  --sp9: 144px;
+
+  --section-pad-v: clamp(80px, 10vw, 160px);
+  --section-pad-h: clamp(24px, 5vw, 80px);
+
+  --content-width: 1200px;
+
+  /* ───────────────────────── */
+  /* MOTION */
+  /* ───────────────────────── */
+
+  --dur-fast: 200ms;
+  --dur-mid: 350ms;
+  --dur-slow: 600ms;
+
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+
+  /* ───────────────────────── */
+  /* GRADIENTS */
+  /* ───────────────────────── */
+
+  --grad-hero-bg:
+    radial-gradient(
+      ellipse 120% 80% at 60% 40%,
+      rgba(196,43,43,0.04) 0%,
+      rgba(212,129,10,0.03) 40%,
+      transparent 70%
+    );
+}
+
+/* ─────────────────────────────────────── */
+/* RESPONSIVE VARIABLES */
+/* ─────────────────────────────────────── */
+
+@media (max-width: 1024px) {
+  :root {
+    --section-pad-v: 96px;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --section-pad-h: 20px;
+    --section-pad-v: 72px;
+
+    --ts-hero-title: clamp(42px, 14vw, 72px);
+    --ts-monument: clamp(64px, 18vw, 120px);
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --section-pad-h: 16px;
+    --section-pad-v: 64px;
+  }
+}
