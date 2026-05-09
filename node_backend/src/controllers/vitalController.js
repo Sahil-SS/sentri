@@ -108,11 +108,55 @@ const addVitals = async (req, res) => {
     // -------------------------
 
     if (predictionResponse.risk_score >= 60) {
+      // -------------------------
+      // CREATE ALERT
+      // -------------------------
+
       await createAlert(
         patient_id,
         "high",
         "High sepsis deterioration risk detected",
       );
+
+      // -------------------------
+      // TRIGGER N8N WORKFLOW
+      // -------------------------
+
+      try {
+        await axios.post(process.env.N8N_WEBHOOK_URL, {
+          patient_id,
+
+          patient_name: patient.name || patient_id,
+
+          risk_score: predictionResponse.risk_score,
+
+          severity: predictionResponse.severity,
+
+          is_acknowledged: false,
+
+          latest_vitals: {
+            heart_rate,
+
+            spo2,
+
+            temperature,
+
+            respiratory_rate,
+
+            systolic_bp,
+
+            mean_arterial_pressure,
+          },
+
+          explanations: predictionResponse.explanations || [],
+        });
+
+        console.log("n8n workflow triggered successfully");
+      } catch (error) {
+        console.log("n8n workflow trigger failed");
+
+        console.log(error.message);
+      }
     }
 
     // -------------------------
