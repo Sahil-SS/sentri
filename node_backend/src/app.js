@@ -10,6 +10,8 @@ const predictionRoutes = require("./routes/predictionRoutes");
 
 const alertRoutes = require("./routes/alertRoutes");
 
+const aiSummaryRoutes = require("./routes/aiSummaryRoutes");
+
 const errorHandler = require("./middleware/errorMiddleware");
 
 const app = express();
@@ -33,14 +35,17 @@ app.get("/", (req, res) => {
     message: "Sentri Node Backend Running",
   });
 });
-
 app.use("/api/patients", patientRoutes);
+
 app.use("/api/vitals", vitalRoutes);
+
 app.use("/api/dashboard", dashboardRoutes);
 
 app.use("/api/predictions", predictionRoutes);
 
 app.use("/api/alerts", alertRoutes);
+
+app.use("/api/ai", aiSummaryRoutes);
 
 app.use(errorHandler);
 
