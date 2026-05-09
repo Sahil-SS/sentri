@@ -73,7 +73,7 @@ Dashboard Visualization
 ```text
 sentri/
 │
-├──ai-backend/
+├── ai-backend/
 ├── node_backend/
 ├── simulation_dashboard/
 ├── main_dashboard/
