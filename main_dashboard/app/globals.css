@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────── */
+/* DESIGN SYSTEM IMPORTS */
+/* ─────────────────────────────────────── */
+
+@import "../styles/tokens.css";
+@import "../styles/typography.css";
+@import "../styles/animations.css";
+@import "../styles/buttons.css";
+@import "../styles/panels.css";
+
+/* ─────────────────────────────────────── */
+/* RESET */
+/* ─────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+
+  background: var(--void);
+  color: var(--t00);
+
+  overflow-x: hidden;
+}
+
+body {
+  font-family: var(--f-mono);
+
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─────────────────────────────────────── */
+/* GLOBAL SELECTION */
+/* ─────────────────────────────────────── */
+
+::selection {
+  background: var(--amber);
+  color: var(--void);
+}
+
+/* ─────────────────────────────────────── */
+/* SCROLLBAR */
+/* ─────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--s00);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--l01);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--amber);
+}
+
+/* ─────────────────────────────────────── */
+/* SECTION */
+/* ─────────────────────────────────────── */
+
+section {
+  position: relative;
+
+  width: 100%;
+
+  padding-inline: var(--section-pad-h);
+  padding-block: var(--section-pad-v);
+}
+
+/* ─────────────────────────────────────── */
+/* MEDIA */
+/* ─────────────────────────────────────── */
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* ─────────────────────────────────────── */
+/* BUTTON RESET */
+/* ─────────────────────────────────────── */
+
+button {
+  border: none;
+  outline: none;
+  background: none;
+
+  cursor: pointer;
+  font: inherit;
+}
+
+/* ─────────────────────────────────────── */
+/* INPUT RESET */
+/* ─────────────────────────────────────── */
+
+input,
+textarea {
+  font: inherit;
+}
+
+/* ─────────────────────────────────────── */
+/* MOBILE */
+/* ─────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+}
