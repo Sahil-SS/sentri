@@ -9,7 +9,7 @@ import Footer from "@/components/footer/Footer";
 
 export default function HomePage() {
   return (
-    <main className="bg-[var(--void)] overflow-hidden">
+    <main className="bg-(--void) overflow-hidden">
       <Navbar />
 
       <ScrollProgress />
