@@ -1,52 +1,37 @@
 const fs = require("fs");
 
-const pdfParse = require(
-  "pdf-parse"
-);
+const pdfParse = require("pdf-parse");
 
 // -------------------------
 // Extract text from PDF
 // -------------------------
 
-const extractTextFromPDF =
-  async (filePath) => {
+const extractTextFromPDF = async (filePath) => {
+  try {
+    // -------------------------
+    // Read PDF buffer
+    // -------------------------
 
-    try {
+    const dataBuffer = fs.readFileSync(filePath);
 
-      // -------------------------
-      // Read PDF buffer
-      // -------------------------
+    // -------------------------
+    // Parse PDF
+    // -------------------------
 
-      const dataBuffer =
-        fs.readFileSync(filePath);
+    const data = await pdfParse(dataBuffer);
 
-      // -------------------------
-      // Parse PDF
-      // -------------------------
+    // -------------------------
+    // Return extracted text
+    // -------------------------
 
-      const data =
-        await pdfParse(
-          dataBuffer
-        );
+    return data.text;
+  } catch (error) {
+    console.log("PDF Extraction Error:");
 
-      // -------------------------
-      // Return extracted text
-      // -------------------------
+    console.log(error);
 
-      return data.text;
-
-    } catch (error) {
-
-      console.log(
-        "PDF Extraction Error:"
-      );
-
-      console.log(error);
-
-      throw new Error(
-        "Failed to extract PDF text"
-      );
-    }
+    throw new Error("Failed to extract PDF text");
+  }
 };
 
 module.exports = {

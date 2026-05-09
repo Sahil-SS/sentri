@@ -4,6 +4,8 @@ const Patient = require("../models/Patient");
 
 const Prediction = require("../models/Prediction");
 
+const axios = require("axios");
+
 const { predictSepsisRisk } = require("../services/aiService");
 
 const { createAlert } = require("../services/alertService");
@@ -121,7 +123,9 @@ const addVitals = async (req, res) => {
       // -------------------------
       // TRIGGER N8N WORKFLOW
       // -------------------------
+      console.log("TRIGGERING N8N WORKFLOW");
 
+      console.log(process.env.N8N_WEBHOOK_URL);
       try {
         await axios.post(process.env.N8N_WEBHOOK_URL, {
           patient_id,

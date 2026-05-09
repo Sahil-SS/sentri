@@ -3,20 +3,12 @@ const express = require("express");
 const {
   getPatientAlerts,
   acknowledgeAlert,
-} = require(
-  "../controllers/alertController"
-);
+} = require("../controllers/alertController");
 
 const router = express.Router();
 
-router.get(
-  "/:patientId",
-  getPatientAlerts
-);
+router.get("/:patientId", getPatientAlerts);
 
-router.patch(
-  "/:alertId/acknowledge",
-  acknowledgeAlert
-);
+router.patch("/:alertId/acknowledge", acknowledgeAlert);
 
 module.exports = router;
