@@ -1,7 +1,8 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   AreaChart,
   Area,
@@ -12,6 +13,16 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import {
+  getPatients,
+  getDashboardData,
+  registerPatient,
+  acknowledgeAlert,
+  type Patient,
+  type DashboardResponse,
+  type DashboardAlert,
+  type RegisterPatientPayload,
+} from "../../backend/api";
 
 /* ═══════════════════════════════════════════════════════════════
    DESIGN TOKENS
@@ -776,256 +787,271 @@ const CSS = `
   }
   .no-patient-icon { font-size: 36px; opacity: 0.3; }
   .no-patient-text { font-family: var(--f-cond); font-size: 14px; letter-spacing: 0.20em; text-transform: uppercase; }
+
+  /* ── API ERROR BANNER ────────────────────────── */
+  .api-error {
+    padding: 8px 20px;
+    font-family: var(--f-mono);
+    font-size: 10px;
+    color: var(--crimson);
+    letter-spacing: 0.12em;
+    background: rgba(196,43,43,0.06);
+    border-bottom: 1px solid rgba(196,43,43,0.18);
+    flex-shrink: 0;
+  }
+
+  /* ── AWAITING VITALS STATE ───────────────────── */
+  .awaiting-vitals {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    color: var(--t03);
+    padding: 48px;
+    text-align: center;
+  }
+  .awaiting-vitals-title {
+    font-family: var(--f-cond);
+    font-size: 16px;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--amber);
+  }
+  .awaiting-vitals-sub {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--t03);
+    line-height: 1.8;
+  }
 `;
 
 /* ═══════════════════════════════════════════════════════════════
-   PATIENT DATA (with full vitals per patient)
+   HELPERS — derive UI shape from API Patient + DashboardResponse
 ═══════════════════════════════════════════════════════════════ */
-const PATIENTS = [
-  {
-    id: "P-001", name: "KUMAR, RAJESH M",  gender: "M", age: 67, risk: 78,
-    status: "CRITICAL", bed: "BED 12", admitted: "07MAY26 08:00",
-    alert: "CRITICAL · HR +22 FROM BASELINE · SPO2 DECLINING · TEMP RISING · ALERT AT 10:22:08",
-    history: [
-      ["AGE","67"], ["DIABETES","YES"], ["BMI","29.1"],
-      ["SMOKER","NO"], ["HTN","YES"], ["SURGERY","NO"],
-      ["HR₀","80BPM"], ["SBP₀","120MM"], ["DBP₀","80MM"],
-    ],
-    vitals: { hr: 109, spo2: 67, temp: 63, resp: 44, sbp: 118 },
-    baseVitals: [82, 0.92, 0.45, 2.5],
-    temporal: [
-      { param:"HR",   slope:"+4.4/h",  accel:"↑ ACC", delta:"+22BPM", sC:"var(--amber)",   aC:"var(--amber)",  dC:"var(--crimson)" },
-      { param:"SPO2", slope:"-1.0/h",  accel:"↑ ACC", delta:"-5PCT",  sC:"var(--crimson)", aC:"var(--amber)",  dC:"var(--crimson)" },
-      { param:"TEMP", slope:"+0.28/h", accel:"– STB", delta:"+1.2°C", sC:"var(--amber)",   aC:"var(--t02)",    dC:"var(--amber)"   },
-      { param:"RESP", slope:"+1.6/h",  accel:"↑ ACC", delta:"+8RPM",  sC:"var(--amber)",   aC:"var(--amber)",  dC:"var(--amber)"   },
-      { param:"SBP",  slope:"-2.0/h",  accel:"– STB", delta:"-12MM",  sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-    ],
-    inference: [
-      { name:"HR_SLOPE",   pct:31 },
-      { name:"SPO2_SLOPE", pct:22 },
-      { name:"TEMP_ACCEL", pct:16 },
-      { name:"DIABETES",   pct:11 },
-      { name:"RESP_SLOPE", pct:8  },
-    ],
-    chartBase: [82, 0.92, 0.45, 2.5],
-    hrColor: "var(--crimson)",
-  },
-  {
-    id: "P-002", name: "MEHTA, SUNITA F",  gender: "F", age: 54, risk: 45,
-    status: "ELEVATED", bed: "BED 7", admitted: "07MAY26 10:15",
-    alert: "ELEVATED · BP VARIABILITY HIGH · MONITORING HR TREND · ALERT AT 11:05:30",
-    history: [
-      ["AGE","54"], ["DIABETES","NO"], ["BMI","26.4"],
-      ["SMOKER","YES"], ["HTN","YES"], ["SURGERY","YES"],
-      ["HR₀","74BPM"], ["SBP₀","135MM"], ["DBP₀","88MM"],
-    ],
-    vitals: { hr: 88, spo2: 94, temp: 37, resp: 22, sbp: 148 },
-    temporal: [
-      { param:"HR",   slope:"+1.8/h",  accel:"– STB", delta:"+14BPM", sC:"var(--amber)",   aC:"var(--t02)",    dC:"var(--amber)"   },
-      { param:"SPO2", slope:"-0.4/h",  accel:"– STB", delta:"-2PCT",  sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-      { param:"TEMP", slope:"+0.10/h", accel:"– STB", delta:"+0.4°C", sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-      { param:"RESP", slope:"+0.6/h",  accel:"– STB", delta:"+4RPM",  sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-      { param:"SBP",  slope:"+3.2/h",  accel:"↑ ACC", delta:"+28MM",  sC:"var(--amber)",   aC:"var(--amber)",  dC:"var(--amber)"   },
-    ],
-    inference: [
-      { name:"SBP_SLOPE",  pct:34 },
-      { name:"HTN",        pct:24 },
-      { name:"HR_SLOPE",   pct:18 },
-      { name:"SMOKER",     pct:14 },
-      { name:"TEMP_DELTA", pct:10 },
-    ],
-    chartBase: [74, 0.7, 0.38, 1.8],
-    hrColor: "var(--amber)",
-  },
-  {
-    id: "P-003", name: "PILLAI, ARJUN M",  gender: "M", age: 41, risk: 22,
-    status: "STABLE", bed: "BED 3", admitted: "07MAY26 12:30",
-    alert: "STABLE · ALL PARAMETERS WITHIN NORMAL RANGE · LAST CHECK 13:00",
-    history: [
-      ["AGE","41"], ["DIABETES","NO"], ["BMI","23.8"],
-      ["SMOKER","NO"], ["HTN","NO"], ["SURGERY","NO"],
-      ["HR₀","70BPM"], ["SBP₀","118MM"], ["DBP₀","76MM"],
-    ],
-    vitals: { hr: 72, spo2: 98, temp: 37, resp: 16, sbp: 120 },
-    temporal: [
-      { param:"HR",   slope:"+0.3/h",  accel:"– STB", delta:"+2BPM",  sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-      { param:"SPO2", slope:"-0.1/h",  accel:"– STB", delta:"-0PCT",  sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-      { param:"TEMP", slope:"+0.02/h", accel:"– STB", delta:"+0.1°C", sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-      { param:"RESP", slope:"+0.1/h",  accel:"– STB", delta:"+1RPM",  sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-      { param:"SBP",  slope:"+0.5/h",  accel:"– STB", delta:"+2MM",   sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-    ],
-    inference: [
-      { name:"AGE",        pct:28 },
-      { name:"BMI",        pct:22 },
-      { name:"HR_STABLE",  pct:20 },
-      { name:"SPO2_STBL",  pct:18 },
-      { name:"TEMP_NORM",  pct:12 },
-    ],
-    chartBase: [70, 0.3, 0.28, 1.2],
-    hrColor: "var(--t01)",
-  },
-  {
-    id: "P-004", name: "NAIR, VIDYA F",    gender: "F", age: 58, risk: 18,
-    status: "STABLE", bed: "BED 5", admitted: "07MAY26 09:45",
-    alert: "STABLE · ROUTINE MONITORING ONLY · DISCHARGE PLANNED 08MAY26",
-    history: [
-      ["AGE","58"], ["DIABETES","NO"], ["BMI","24.5"],
-      ["SMOKER","NO"], ["HTN","NO"], ["SURGERY","YES"],
-      ["HR₀","68BPM"], ["SBP₀","115MM"], ["DBP₀","72MM"],
-    ],
-    vitals: { hr: 70, spo2: 99, temp: 37, resp: 15, sbp: 116 },
-    temporal: [
-      { param:"HR",   slope:"+0.2/h",  accel:"– STB", delta:"+2BPM",  sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-      { param:"SPO2", slope:"0.0/h",   accel:"– STB", delta:"0PCT",   sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-      { param:"TEMP", slope:"0.0/h",   accel:"– STB", delta:"0.0°C",  sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-      { param:"RESP", slope:"0.0/h",   accel:"– STB", delta:"0RPM",   sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-      { param:"SBP",  slope:"+0.2/h",  accel:"– STB", delta:"+1MM",   sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-    ],
-    inference: [
-      { name:"SURGERY",    pct:30 },
-      { name:"AGE",        pct:26 },
-      { name:"SPO2_NORM",  pct:22 },
-      { name:"HR_STABLE",  pct:14 },
-      { name:"BP_STABLE",  pct:8  },
-    ],
-    chartBase: [68, 0.2, 0.20, 1.0],
-    hrColor: "var(--t02)",
-  },
-  {
-    id: "P-005", name: "SHARMA, PRIYA F",  gender: "F", age: 72, risk: 61,
-    status: "CRITICAL", bed: "BED 9", admitted: "07MAY26 07:30",
-    alert: "CRITICAL · RESP RATE ELEVATED · TEMP SPIKE 38.6°C · ALERT AT 09:45:12",
-    history: [
-      ["AGE","72"], ["DIABETES","YES"], ["BMI","31.2"],
-      ["SMOKER","YES"], ["HTN","YES"], ["SURGERY","YES"],
-      ["HR₀","78BPM"], ["SBP₀","130MM"], ["DBP₀","84MM"],
-    ],
-    vitals: { hr: 98, spo2: 91, temp: 39, resp: 28, sbp: 142 },
-    temporal: [
-      { param:"HR",   slope:"+2.8/h",  accel:"↑ ACC", delta:"+20BPM", sC:"var(--amber)",   aC:"var(--amber)",  dC:"var(--amber)"   },
-      { param:"SPO2", slope:"-0.8/h",  accel:"↑ ACC", delta:"-4PCT",  sC:"var(--crimson)", aC:"var(--amber)",  dC:"var(--amber)"   },
-      { param:"TEMP", slope:"+0.5/h",  accel:"↑ ACC", delta:"+2.4°C", sC:"var(--crimson)", aC:"var(--crimson)",dC:"var(--crimson)" },
-      { param:"RESP", slope:"+3.2/h",  accel:"↑ ACC", delta:"+10RPM", sC:"var(--crimson)", aC:"var(--crimson)",dC:"var(--crimson)" },
-      { param:"SBP",  slope:"+1.8/h",  accel:"↑ ACC", delta:"+12MM",  sC:"var(--amber)",   aC:"var(--amber)",  dC:"var(--amber)"   },
-    ],
-    inference: [
-      { name:"RESP_SLOPE", pct:29 },
-      { name:"TEMP_ACCEL", pct:24 },
-      { name:"AGE",        pct:18 },
-      { name:"DIABETES",   pct:16 },
-      { name:"HR_SLOPE",   pct:13 },
-    ],
-    chartBase: [78, 1.4, 0.52, 3.2],
-    hrColor: "var(--crimson)",
-  },
-  {
-    id: "P-006", name: "REDDY, KIRAN M",   gender: "M", age: 45, risk: 14,
-    status: "STABLE", bed: "BED 1", admitted: "07MAY26 11:00",
-    alert: "STABLE · RECOVERING POST-PROCEDURE · VITALS NORMAL",
-    history: [
-      ["AGE","45"], ["DIABETES","NO"], ["BMI","22.0"],
-      ["SMOKER","NO"], ["HTN","NO"], ["SURGERY","YES"],
-      ["HR₀","65BPM"], ["SBP₀","112MM"], ["DBP₀","70MM"],
-    ],
-    vitals: { hr: 66, spo2: 99, temp: 37, resp: 14, sbp: 114 },
-    temporal: [
-      { param:"HR",   slope:"+0.1/h",  accel:"– STB", delta:"+1BPM",  sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-      { param:"SPO2", slope:"0.0/h",   accel:"– STB", delta:"0PCT",   sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-      { param:"TEMP", slope:"0.0/h",   accel:"– STB", delta:"0.0°C",  sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-      { param:"RESP", slope:"0.0/h",   accel:"– STB", delta:"0RPM",   sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-      { param:"SBP",  slope:"+0.1/h",  accel:"– STB", delta:"+2MM",   sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-    ],
-    inference: [
-      { name:"SURGERY",    pct:32 },
-      { name:"AGE",        pct:24 },
-      { name:"BMI",        pct:20 },
-      { name:"SPO2_NORM",  pct:14 },
-      { name:"BP_STABLE",  pct:10 },
-    ],
-    chartBase: [65, 0.1, 0.18, 0.8],
-    hrColor: "var(--t02)",
-  },
-  {
-    id: "P-007", name: "BOSE, TARUN M",    gender: "M", age: 66, risk: 39,
-    status: "ELEVATED", bed: "BED 11", admitted: "07MAY26 08:50",
-    alert: "ELEVATED · HR VARIABILITY HIGH · MONITORING ARRHYTHMIA RISK",
-    history: [
-      ["AGE","66"], ["DIABETES","YES"], ["BMI","28.3"],
-      ["SMOKER","YES"], ["HTN","NO"], ["SURGERY","NO"],
-      ["HR₀","76BPM"], ["SBP₀","122MM"], ["DBP₀","78MM"],
-    ],
-    vitals: { hr: 91, spo2: 95, temp: 37, resp: 20, sbp: 128 },
-    temporal: [
-      { param:"HR",   slope:"+1.4/h",  accel:"↑ ACC", delta:"+15BPM", sC:"var(--amber)",   aC:"var(--amber)",  dC:"var(--amber)"   },
-      { param:"SPO2", slope:"-0.3/h",  accel:"– STB", delta:"-1PCT",  sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-      { param:"TEMP", slope:"+0.06/h", accel:"– STB", delta:"+0.3°C", sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-      { param:"RESP", slope:"+0.8/h",  accel:"– STB", delta:"+4RPM",  sC:"var(--amber)",   aC:"var(--t02)",    dC:"var(--amber)"   },
-      { param:"SBP",  slope:"+1.0/h",  accel:"– STB", delta:"+6MM",   sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-    ],
-    inference: [
-      { name:"HR_VARIAB",  pct:32 },
-      { name:"DIABETES",   pct:24 },
-      { name:"SMOKER",     pct:20 },
-      { name:"AGE",        pct:16 },
-      { name:"RESP_SLOPE", pct:8  },
-    ],
-    chartBase: [76, 1.1, 0.40, 2.0],
-    hrColor: "var(--amber)",
-  },
-  {
-    id: "P-008", name: "IYER, MEERA F",    gender: "F", age: 52, risk: 11,
-    status: "STABLE", bed: "BED 2", admitted: "07MAY26 13:10",
-    alert: "STABLE · OBSERVATION ONLY · LOW RISK PROFILE",
-    history: [
-      ["AGE","52"], ["DIABETES","NO"], ["BMI","21.5"],
-      ["SMOKER","NO"], ["HTN","NO"], ["SURGERY","NO"],
-      ["HR₀","62BPM"], ["SBP₀","108MM"], ["DBP₀","68MM"],
-    ],
-    vitals: { hr: 63, spo2: 99, temp: 37, resp: 14, sbp: 109 },
-    temporal: [
-      { param:"HR",   slope:"+0.1/h",  accel:"– STB", delta:"+1BPM",  sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-      { param:"SPO2", slope:"0.0/h",   accel:"– STB", delta:"0PCT",   sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-      { param:"TEMP", slope:"0.0/h",   accel:"– STB", delta:"0.0°C",  sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-      { param:"RESP", slope:"0.0/h",   accel:"– STB", delta:"0RPM",   sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-      { param:"SBP",  slope:"+0.1/h",  accel:"– STB", delta:"+1MM",   sC:"var(--t01)",     aC:"var(--t02)",    dC:"var(--t01)"     },
-    ],
-    inference: [
-      { name:"AGE",        pct:30 },
-      { name:"BMI",        pct:26 },
-      { name:"SPO2_NORM",  pct:22 },
-      { name:"HR_STABLE",  pct:14 },
-      { name:"BP_STABLE",  pct:8  },
-    ],
-    chartBase: [62, 0.1, 0.16, 0.7],
-    hrColor: "var(--t02)",
-  },
-];
 
-const TIMELINE_EVENTS = [
-  { t: "08:00", label: "ADMITTED",         color: "var(--t02)",     left: "4%"  },
-  { t: "08:42", label: "ELEV/47\nALERT#1", color: "var(--amber)",   left: "40%" },
-  { t: "10:08", label: "CRIT/78\nALERT#3", color: "var(--crimson)", left: "74%" },
-];
+function severityToStatus(
+  severity: string,
+): "CRITICAL" | "ELEVATED" | "STABLE" {
+  if (severity === "high") return "CRITICAL";
+  if (severity === "medium") return "ELEVATED";
+  return "STABLE";
+}
+
+function riskToScore(riskScore: number): number {
+  return Math.round(Math.min(100, Math.max(0, riskScore)));
+}
+
+/** Build the temporal rows from historicalVitals (last 6 readings) */
+function buildTemporalRows(hist: any[]) {
+  if (!hist || hist.length < 2) return [];
+  const first = hist[0];
+  const last = hist[hist.length - 1];
+  const hours = hist.length > 1 ? hist.length - 1 : 1;
+
+  const slope = (a: number, b: number) => ((b - a) / hours).toFixed(1);
+  const delta = (a: number, b: number, unit: string) => {
+    const d = b - a;
+    return (d >= 0 ? "+" : "") + d.toFixed(0) + unit;
+  };
+  const accel = (vals: number[]) => {
+    if (vals.length < 3) return "– STB";
+    const half = Math.floor(vals.length / 2);
+    const r1 = (vals[half] - vals[0]) / half;
+    const r2 = (vals[vals.length - 1] - vals[half]) / (vals.length - 1 - half);
+    return r2 > r1 * 1.15 ? "↑ ACC" : "– STB";
+  };
+
+  const hrs = hist.map((v: any) => v.heart_rate ?? 0);
+  const spo2 = hist.map((v: any) => v.spo2 ?? 0);
+  const temp = hist.map((v: any) => v.temperature ?? 0);
+  const resp = hist.map((v: any) => v.respiratory_rate ?? 0);
+  const sbp = hist.map((v: any) => v.systolic_bp ?? 0);
+
+  const col = (v: number, warn: number, crit: number) =>
+    v >= crit ? "var(--crimson)" : v >= warn ? "var(--amber)" : "var(--t01)";
+
+  return [
+    {
+      param: "HR",
+      slope: `${slope(first.heart_rate ?? 0, last.heart_rate ?? 0)}/h`,
+      accel: accel(hrs),
+      delta: delta(first.heart_rate ?? 0, last.heart_rate ?? 0, "BPM"),
+      sC: col(
+        Math.abs((last.heart_rate ?? 0) - (first.heart_rate ?? 0)),
+        10,
+        20,
+      ),
+      aC: accel(hrs) === "↑ ACC" ? "var(--amber)" : "var(--t02)",
+      dC: col(
+        Math.abs((last.heart_rate ?? 0) - (first.heart_rate ?? 0)),
+        10,
+        20,
+      ),
+    },
+    {
+      param: "SPO2",
+      slope: `${slope(first.spo2 ?? 0, last.spo2 ?? 0)}/h`,
+      accel: accel(spo2),
+      delta: delta(first.spo2 ?? 0, last.spo2 ?? 0, "PCT"),
+      sC: col(Math.abs((last.spo2 ?? 0) - (first.spo2 ?? 0)), 2, 5),
+      aC: accel(spo2) === "↑ ACC" ? "var(--amber)" : "var(--t02)",
+      dC: col(Math.abs((last.spo2 ?? 0) - (first.spo2 ?? 0)), 2, 5),
+    },
+    {
+      param: "TEMP",
+      slope: `${slope(first.temperature ?? 0, last.temperature ?? 0)}/h`,
+      accel: accel(temp),
+      delta: delta(first.temperature ?? 0, last.temperature ?? 0, "°C"),
+      sC: col(
+        Math.abs((last.temperature ?? 0) - (first.temperature ?? 0)),
+        0.5,
+        1.5,
+      ),
+      aC: accel(temp) === "↑ ACC" ? "var(--amber)" : "var(--t02)",
+      dC: col(
+        Math.abs((last.temperature ?? 0) - (first.temperature ?? 0)),
+        0.5,
+        1.5,
+      ),
+    },
+    {
+      param: "RESP",
+      slope: `${slope(first.respiratory_rate ?? 0, last.respiratory_rate ?? 0)}/h`,
+      accel: accel(resp),
+      delta: delta(
+        first.respiratory_rate ?? 0,
+        last.respiratory_rate ?? 0,
+        "RPM",
+      ),
+      sC: col(
+        Math.abs((last.respiratory_rate ?? 0) - (first.respiratory_rate ?? 0)),
+        4,
+        8,
+      ),
+      aC: accel(resp) === "↑ ACC" ? "var(--amber)" : "var(--t02)",
+      dC: col(
+        Math.abs((last.respiratory_rate ?? 0) - (first.respiratory_rate ?? 0)),
+        4,
+        8,
+      ),
+    },
+    {
+      param: "SBP",
+      slope: `${slope(first.systolic_bp ?? 0, last.systolic_bp ?? 0)}/h`,
+      accel: accel(sbp),
+      delta: delta(first.systolic_bp ?? 0, last.systolic_bp ?? 0, "MM"),
+      sC: col(
+        Math.abs((last.systolic_bp ?? 0) - (first.systolic_bp ?? 0)),
+        10,
+        20,
+      ),
+      aC: accel(sbp) === "↑ ACC" ? "var(--amber)" : "var(--t02)",
+      dC: col(
+        Math.abs((last.systolic_bp ?? 0) - (first.systolic_bp ?? 0)),
+        10,
+        20,
+      ),
+    },
+  ];
+}
+
+/** Build history brief cells from Patient record */
+function buildHistoryCells(patient: Patient): [string, string][] {
+  return [
+    ["AGE", patient.age ? `${patient.age}` : "–"],
+    ["DIABETES", patient.diabetes ? "YES" : "NO"],
+    ["BMI", patient.bmi ? `${patient.bmi}` : "–"],
+    ["SMOKER", patient.smoker ? "YES" : "NO"],
+    ["HTN", patient.baseline_sbp && patient.baseline_sbp > 130 ? "YES" : "NO"],
+    ["HEART DIS", patient.heart_disease ? "YES" : "NO"],
+    ["HR₀", patient.baseline_hr ? `${patient.baseline_hr}BPM` : "–"],
+    ["SBP₀", patient.baseline_sbp ? `${patient.baseline_sbp}MM` : "–"],
+    ["DBP₀", patient.baseline_dbp ? `${patient.baseline_dbp}MM` : "–"],
+  ];
+}
+
+/** Build inference drivers from explanation strings */
+function buildInference(
+  explanation: string[],
+): { name: string; pct: number }[] {
+  if (!explanation || explanation.length === 0) return [];
+  const base = [33, 25, 18, 14, 10];
+  return explanation.map((e, i) => ({
+    name: e.split(" ").slice(0, 2).join("_").toUpperCase().slice(0, 12),
+    pct: base[i] ?? Math.max(5, 30 - i * 6),
+  }));
+}
+
+/** Build timeline events from alerts */
+function buildTimelineEvents(alerts: DashboardAlert[]) {
+  const leftPcts = ["4%", "40%", "74%"];
+  return alerts.slice(0, 3).map((a, i) => {
+    const t = a.timestamp
+      ? new Date(a.timestamp).toLocaleTimeString("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "--:--";
+    const color =
+      a.severity === "high"
+        ? "var(--crimson)"
+        : a.severity === "medium"
+          ? "var(--amber)"
+          : "var(--t02)";
+    const label =
+      a.severity === "high"
+        ? `CRIT\nALRT#${i + 1}`
+        : a.severity === "medium"
+          ? `ELEV\nALRT#${i + 1}`
+          : `INFO\nALRT#${i + 1}`;
+    return { t, label, color, left: leftPcts[i] ?? `${20 + i * 30}%` };
+  });
+}
 
 /* ═══════════════════════════════════════════════════════════════
    CHART DATA GENERATORS
 ═══════════════════════════════════════════════════════════════ */
-function makeChartData(base: number, slope: number | undefined, freq: number | undefined, amp: number | undefined, n = 30) {
+function makeChartDataFromHistory(hist: any[]) {
+  if (!hist || hist.length === 0) return [];
+  return hist.map((v: any) => {
+    const ts = v.timestamp ? new Date(v.timestamp) : new Date();
+    const t = `${String(ts.getHours()).padStart(2, "0")}:${String(ts.getMinutes()).padStart(2, "0")}`;
+    return {
+      t,
+      hr: v.heart_rate ?? 0,
+      spo2: v.spo2 ?? 0,
+      temp: v.temperature ?? 0,
+      resp: v.respiratory_rate ?? 0,
+      sbp: v.systolic_bp ?? 0,
+    };
+  });
+}
+
+function makeChartData(
+  base: number,
+  slope: number,
+  freq: number,
+  amp: number,
+  n = 30,
+) {
   const out = [];
   for (let i = 0; i < n; i++) {
     const totalMins = i * 10;
     const h = Math.floor((12 * 60 + 56 + totalMins) / 60) % 24;
     const m = (56 + totalMins) % 60;
-    const t = `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;
+    const t = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
     out.push({
       t,
       hr: Math.round(
-  base + i * (slope ?? 0) + Math.sin(i * (freq ?? 0)) * (amp ?? 0) + Math.random() * 1.2
-),
-      spo2: Math.round(98    - i * 0.19  - Math.abs(Math.sin(i * 0.31)) * 1.2),
+        base + i * slope + Math.sin(i * freq) * amp + Math.random() * 1.2,
+      ),
+      spo2: Math.round(98 - i * 0.19 - Math.abs(Math.sin(i * 0.31)) * 1.2),
       temp: +(36.6 + i * 0.056 + Math.sin(i * 0.22) * 0.11).toFixed(1),
-      resp: Math.round(18    + i * 0.21  + Math.sin(i * 0.48) * 1.1),
-      sbp:  Math.round(128   - i * 0.42  + Math.sin(i * 0.29) * 2.0),
+      resp: Math.round(18 + i * 0.21 + Math.sin(i * 0.48) * 1.1),
+      sbp: Math.round(128 - i * 0.42 + Math.sin(i * 0.29) * 2.0),
     });
   }
   return out;
@@ -1036,15 +1062,23 @@ function makeVStream(
   slope: number,
   freq: number,
   amp: number,
-  n: number = 20
+  n = 20,
 ) {
   return Array.from({ length: n }, (_, i) => {
     const totalMins = i * 14;
     const h = Math.floor((12 * 60 + 14 + totalMins) / 60) % 24;
     const m = (14 + totalMins) % 60;
-    const t = `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;
-    const raw = base + i * slope + Math.sin(i * freq) * amp;
-    return { t, v: Math.round(raw) };
+    const t = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    return { t, v: Math.round(base + i * slope + Math.sin(i * freq) * amp) };
+  });
+}
+
+function makeVStreamFromHistory(hist: any[], key: string) {
+  if (!hist || hist.length === 0) return [];
+  return hist.map((v: any) => {
+    const ts = v.timestamp ? new Date(v.timestamp) : new Date();
+    const t = `${String(ts.getHours()).padStart(2, "0")}:${String(ts.getMinutes()).padStart(2, "0")}`;
+    return { t, v: v[key] ?? 0 };
   });
 }
 
@@ -1057,10 +1091,17 @@ function scoreColor(r: number) {
   return "var(--t02)";
 }
 
-function patientClass(p: any, activeId: string) {
-  const base = p.id === activeId ? " active" : "";
-  if (p.risk >= 60) return "patient-row critical" + base;
-  if (p.risk >= 35) return "patient-row elevated" + base;
+function patientRowClass(
+  riskScore: number,
+  status: string,
+  activeId: string,
+  patientId: string,
+) {
+  const base = patientId === activeId ? " active" : "";
+  if (riskScore >= 60 || status === "CRITICAL")
+    return "patient-row critical" + base;
+  if (riskScore >= 35 || status === "ELEVATED")
+    return "patient-row elevated" + base;
   return "patient-row" + base;
 }
 
@@ -1069,11 +1110,13 @@ function useClock() {
   useEffect(() => {
     const upd = () => {
       const now = new Date();
-      setTime([
-        String(now.getHours()).padStart(2,"0"),
-        String(now.getMinutes()).padStart(2,"0"),
-        String(now.getSeconds()).padStart(2,"0"),
-      ].join(":"));
+      setTime(
+        [
+          String(now.getHours()).padStart(2, "0"),
+          String(now.getMinutes()).padStart(2, "0"),
+          String(now.getSeconds()).padStart(2, "0"),
+        ].join(":"),
+      );
     };
     upd();
     const id = setInterval(upd, 1000);
@@ -1083,20 +1126,23 @@ function useClock() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   PATIENT INTAKE BAR
+   PATIENT INTAKE BAR  —  integrated with registerPatient()
 ═══════════════════════════════════════════════════════════════ */
-function PatientIntakeBar() {
+function PatientIntakeBar({ onRegistered }: { onRegistered?: () => void }) {
   const [open, setOpen] = useState(false);
   const [historyMode, setHistoryMode] = useState("text");
   const [patientId, setPatientId] = useState("");
   const [historyText, setHistoryText] = useState("");
- const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef(null);
 
-  const canSubmit = patientId.trim().length > 0 && (
-    historyMode === "text" ? historyText.trim().length > 0 : pdfFile !== null
-  );
+  const canSubmit =
+    !submitting &&
+    patientId.trim().length > 0 &&
+    (historyMode === "text" ? historyText.trim().length > 0 : pdfFile !== null);
 
   function handleDrop(e: React.DragEvent<HTMLDivElement>) {
     e.preventDefault();
@@ -1110,17 +1156,41 @@ function PatientIntakeBar() {
     if (f) setPdfFile(f);
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!canSubmit) return;
-    console.log("INTAKE SUBMIT", { patientId, historyMode, historyText, pdfFile });
-    setPatientId(""); setHistoryText(""); setPdfFile(null); setOpen(false);
+    setSubmitting(true);
+    setError(null);
+    try {
+      const payload: RegisterPatientPayload = {
+        patient_id: patientId.trim(),
+        history_text:
+          historyMode === "text" ? historyText.trim() : (pdfFile?.name ?? ""),
+      };
+      await registerPatient(payload);
+      setPatientId("");
+      setHistoryText("");
+      setPdfFile(null);
+      setOpen(false);
+      onRegistered?.();
+    } catch (err: any) {
+      setError(err?.message ?? "Registration failed");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
     <div className="intake-bar">
-      <div className="intake-bar-collapsed" onClick={() => setOpen(o => !o)}>
+      <div className="intake-bar-collapsed" onClick={() => setOpen((o) => !o)}>
         <div className="intake-toggle-icon">
-          <span style={{ fontFamily:"var(--f-mono)", fontSize:12, color:"var(--amber)", lineHeight:1 }}>
+          <span
+            style={{
+              fontFamily: "var(--f-mono)",
+              fontSize: 12,
+              color: "var(--amber)",
+              lineHeight: 1,
+            }}
+          >
             {open ? "−" : "+"}
           </span>
         </div>
@@ -1131,7 +1201,7 @@ function PatientIntakeBar() {
       </div>
 
       {open && (
-        <div className="intake-form-wrap" onClick={e => e.stopPropagation()}>
+        <div className="intake-form-wrap" onClick={(e) => e.stopPropagation()}>
           <div className="intake-field-group">
             <span className="intake-field-label">Patient ID</span>
             <input
@@ -1139,18 +1209,46 @@ function PatientIntakeBar() {
               type="text"
               placeholder="P-009"
               value={patientId}
-              onChange={e => setPatientId(e.target.value)}
+              onChange={(e) => setPatientId(e.target.value)}
               spellCheck={false}
               autoComplete="off"
             />
+            {error && (
+              <span
+                style={{
+                  fontFamily: "var(--f-mono)",
+                  fontSize: 10,
+                  color: "var(--crimson)",
+                  letterSpacing: "0.10em",
+                }}
+              >
+                {error}
+              </span>
+            )}
           </div>
           <div className="intake-divider" />
           <div className="intake-history-group">
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
               <span className="intake-field-label">Patient History</span>
               <div className="intake-history-tabs">
-                <button className={`intake-tab${historyMode==="text"?" active":""}`} onClick={() => setHistoryMode("text")}>TEXT</button>
-                <button className={`intake-tab${historyMode==="pdf"?" active":""}`} onClick={() => setHistoryMode("pdf")}>PDF</button>
+                <button
+                  className={`intake-tab${historyMode === "text" ? " active" : ""}`}
+                  onClick={() => setHistoryMode("text")}
+                >
+                  TEXT
+                </button>
+                <button
+                  className={`intake-tab${historyMode === "pdf" ? " active" : ""}`}
+                  onClick={() => setHistoryMode("pdf")}
+                >
+                  PDF
+                </button>
               </div>
             </div>
             {historyMode === "text" ? (
@@ -1158,23 +1256,34 @@ function PatientIntakeBar() {
                 className="intake-textarea"
                 placeholder="Enter patient history, comorbidities, medications, prior admissions…"
                 value={historyText}
-                onChange={e => setHistoryText(e.target.value)}
+                onChange={(e) => setHistoryText(e.target.value)}
                 spellCheck={false}
               />
             ) : (
               <div
-                className={`intake-pdf-zone${dragOver?" drag-over":""}`}
-                onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                className={`intake-pdf-zone${dragOver ? " drag-over" : ""}`}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragOver(true);
+                }}
                 onDragLeave={() => setDragOver(false)}
                 onDrop={handleDrop}
               >
-                <input ref={fileInputRef} type="file" accept=".pdf,application/pdf" className="intake-pdf-input" onChange={handleFileChange} />
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  className="intake-pdf-input"
+                  onChange={handleFileChange}
+                />
                 {pdfFile ? (
                   <span className="intake-pdf-filename">▪ {pdfFile.name}</span>
                 ) : (
                   <>
                     <div className="intake-pdf-icon" />
-                    <span className="intake-pdf-text">DROP PDF · OR <span>CLICK TO BROWSE</span></span>
+                    <span className="intake-pdf-text">
+                      DROP PDF · OR <span>CLICK TO BROWSE</span>
+                    </span>
                   </>
                 )}
               </div>
@@ -1182,8 +1291,12 @@ function PatientIntakeBar() {
           </div>
           <div className="intake-divider" />
           <div className="intake-submit-group">
-            <button className="intake-submit-btn" onClick={handleSubmit} disabled={!canSubmit}>
-              REGISTER ▶
+            <button
+              className="intake-submit-btn"
+              onClick={handleSubmit}
+              disabled={!canSubmit}
+            >
+              {submitting ? "REGISTERING…" : "REGISTER ▶"}
             </button>
           </div>
         </div>
@@ -1203,15 +1316,24 @@ function ChartTooltip({
   active?: boolean;
   payload?: any[];
   label?: string | number;
-}) {  if (!active || !payload?.length) return null;
+}) {
+  if (!active || !payload?.length) return null;
   const d = payload[0]?.payload ?? {};
   return (
     <div className="ct-box">
       <div className="ct-time">{label}</div>
-      {[["HR",d.hr,"var(--amber)"],["SPO2",d.spo2,"var(--crimson)"],["TEMP",d.temp,"var(--t01)"],["RESP",d.resp,"var(--t02)"],["SBP",d.sbp,"var(--t02)"]].map(([k,v,c]) => (
+      {[
+        ["HR", d.hr, "var(--amber)"],
+        ["SPO2", d.spo2, "var(--crimson)"],
+        ["TEMP", d.temp, "var(--t01)"],
+        ["RESP", d.resp, "var(--t02)"],
+        ["SBP", d.sbp, "var(--t02)"],
+      ].map(([k, v, c]) => (
         <div className="ct-row" key={k}>
           <span className="ct-lbl">{k}:</span>
-          <span className="ct-val" style={{ color:c }}>{v}</span>
+          <span className="ct-val" style={{ color: c }}>
+            {v}
+          </span>
         </div>
       ))}
     </div>
@@ -1222,49 +1344,87 @@ function ChartTooltip({
    THREAT ARC SVG
 ═══════════════════════════════════════════════════════════════ */
 function ThreatArc({ score, size = 250 }: { score: number; size?: number }) {
-  const cx = size/2, cy = size/2, r = size * 0.42;
-  const TOTAL_DEG = 210, START_DEG = 195;
+  const cx = size / 2,
+    cy = size / 2,
+    r = size * 0.42;
+  const TOTAL_DEG = 210,
+    START_DEG = 195;
 
   function pxy(deg: number) {
     const rad = ((deg - 90) * Math.PI) / 180;
     return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
   }
   function arcPath(sd: number, ed: number) {
-    const s = pxy(sd), e = pxy(ed);
-    const la = (ed - sd) > 180 ? 1 : 0;
+    const s = pxy(sd),
+      e = pxy(ed);
+    const la = ed - sd > 180 ? 1 : 0;
     return `M${s.x.toFixed(2)},${s.y.toFixed(2)} A${r},${r},0,${la},1,${e.x.toFixed(2)},${e.y.toFixed(2)}`;
   }
 
   const endDeg = START_DEG + (score / 100) * TOTAL_DEG;
   const ep = pxy(endDeg);
-  const color = score >= 60 ? "var(--crimson)" : score >= 30 ? "var(--amber)" : "var(--t02)";
+  const color =
+    score >= 60
+      ? "var(--crimson)"
+      : score >= 30
+        ? "var(--amber)"
+        : "var(--t02)";
   const circ = 2 * Math.PI * r * (TOTAL_DEG / 360);
   const filled = (score / 100) * circ;
-  const severity = score >= 60 ? "CRITICAL" : score >= 30 ? "ELEVATED" : "STABLE";
+  const severity =
+    score >= 60 ? "CRITICAL" : score >= 30 ? "ELEVATED" : "STABLE";
 
   return (
-    <div className="arc-svg-root" style={{ width:size, height:size }}>
+    <div className="arc-svg-root" style={{ width: size, height: size }}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        <path d={arcPath(START_DEG, START_DEG+TOTAL_DEG)} fill="none" stroke="var(--l01)" strokeWidth={1.5} strokeLinecap="square" />
+        <path
+          d={arcPath(START_DEG, START_DEG + TOTAL_DEG)}
+          fill="none"
+          stroke="var(--l01)"
+          strokeWidth={1.5}
+          strokeLinecap="square"
+        />
         <path
           d={arcPath(START_DEG, endDeg)}
-          fill="none" stroke={color} strokeWidth={3.5} strokeLinecap="square"
-          style={{ strokeDasharray:circ, strokeDashoffset:circ-filled, transition:"stroke-dashoffset 900ms ease-out" }}
+          fill="none"
+          stroke={color}
+          strokeWidth={3.5}
+          strokeLinecap="square"
+          style={{
+            strokeDasharray: circ,
+            strokeDashoffset: circ - filled,
+            transition: "stroke-dashoffset 900ms ease-out",
+          }}
         />
-        <rect x={ep.x-5} y={ep.y-5} width={10} height={10} fill={color} />
-        {[0,30,60,100].map(tick => {
-          const deg = START_DEG + (tick/100)*TOTAL_DEG;
+        <rect x={ep.x - 5} y={ep.y - 5} width={10} height={10} fill={color} />
+        {[0, 30, 60, 100].map((tick) => {
+          const deg = START_DEG + (tick / 100) * TOTAL_DEG;
           const p = pxy(deg);
-          const off = { x:(p.x-cx)*0.18, y:(p.y-cy)*0.18 };
+          const off = { x: (p.x - cx) * 0.18, y: (p.y - cy) * 0.18 };
           return (
-            <text key={tick} x={p.x+off.x} y={p.y+off.y} textAnchor="middle" dominantBaseline="middle"
-              fill="var(--t02)" fontSize={10} fontFamily="var(--f-mono)" letterSpacing="0.04em">{tick}</text>
+            <text
+              key={tick}
+              x={p.x + off.x}
+              y={p.y + off.y}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fill="var(--t02)"
+              fontSize={10}
+              fontFamily="var(--f-mono)"
+              letterSpacing="0.04em"
+            >
+              {tick}
+            </text>
           );
         })}
       </svg>
       <div className="arc-center">
-        <div className="arc-score" style={{ color }}>{score}</div>
-        <div className="arc-sev" style={{ color }}>{severity}</div>
+        <div className="arc-score" style={{ color }}>
+          {score}
+        </div>
+        <div className="arc-sev" style={{ color }}>
+          {severity}
+        </div>
         <div className="arc-idx">RISK INDEX</div>
       </div>
     </div>
@@ -1279,7 +1439,8 @@ function VitalStream({
   unit,
   color,
   currentVal,
-  trend,
+  trendDir,
+  data,
   base,
   slope,
   freq,
@@ -1289,16 +1450,19 @@ function VitalStream({
   unit: string;
   color: string;
   currentVal: number;
-  trend: number;
+  trendDir: "up" | "down" | "flat";
+  data?: { t: string; v: number }[];
   base: number;
   slope: number;
   freq: number;
   amp: number;
 }) {
-  const data = makeVStream(base, slope, freq, amp);
-  const tS = data[0]?.t ?? "";
-  const tM = data[Math.floor(data.length/2)]?.t ?? "";
-  const tE = data[data.length-1]?.t ?? "";
+  const streamData =
+    data && data.length > 0 ? data : makeVStream(base, slope, freq, amp);
+  const tS = streamData[0]?.t ?? "";
+  const tM = streamData[Math.floor(streamData.length / 2)]?.t ?? "";
+  const tE = streamData[streamData.length - 1]?.t ?? "";
+  const trendIcon = trendDir === "up" ? "▲" : trendDir === "down" ? "▼" : "–";
   return (
     <div className="vital-stream">
       <div className="vs-hd">
@@ -1307,14 +1471,25 @@ function VitalStream({
           <span className="vs-unit">┊ {unit}</span>
         </div>
         <div className="vs-right">
-          <span className="vs-val" style={{ color }}>{currentVal}</span>
-          <span className="vs-trend" style={{ color }}>{trend}</span>
+          <span className="vs-val" style={{ color }}>
+            {currentVal}
+          </span>
+          <span className="vs-trend" style={{ color }}>
+            {trendIcon}
+          </span>
         </div>
       </div>
       <div className="vs-chart">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
-            <Line type="monotone" dataKey="v" stroke={color} strokeWidth={1.8} dot={false} isAnimationActive={false} />
+          <LineChart data={streamData}>
+            <Line
+              type="monotone"
+              dataKey="v"
+              stroke={color}
+              strokeWidth={1.8}
+              dot={false}
+              isAnimationActive={false}
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -1345,14 +1520,34 @@ function TemporalTable({ rows }: { rows: any[] }) {
         <span className="tbl-hd">ACCEL</span>
         <span className="tbl-hd tbl-r">ΔBASE</span>
       </div>
-      {rows.map(r => (
-        <div className="tbl-row" key={r.param}>
-          <span className="tbl-param">{r.param}</span>
-          <span className="tbl-val" style={{ color:r.sC }}>{r.slope}</span>
-          <span className="tbl-val" style={{ color:r.aC }}>{r.accel}</span>
-          <span className="tbl-val tbl-r" style={{ color:r.dC }}>{r.delta}</span>
+      {rows.length === 0 ? (
+        <div
+          style={{
+            padding: "18px 22px",
+            fontFamily: "var(--f-mono)",
+            fontSize: 11,
+            color: "var(--t03)",
+            letterSpacing: "0.12em",
+          }}
+        >
+          AWAITING 6 READINGS FOR ANALYSIS
         </div>
-      ))}
+      ) : (
+        rows.map((r) => (
+          <div className="tbl-row" key={r.param}>
+            <span className="tbl-param">{r.param}</span>
+            <span className="tbl-val" style={{ color: r.sC }}>
+              {r.slope}
+            </span>
+            <span className="tbl-val" style={{ color: r.aC }}>
+              {r.accel}
+            </span>
+            <span className="tbl-val tbl-r" style={{ color: r.dC }}>
+              {r.delta}
+            </span>
+          </div>
+        ))
+      )}
     </>
   );
 }
@@ -1367,14 +1562,16 @@ function HistoryBrief({ cells }: { cells: [string, string][] }) {
         <div className="panel-title">HISTORY BRIEF</div>
       </div>
       <div className="hist-grid">
-        {cells.map(([k,v]) => (
+        {cells.map(([k, v]) => (
           <div className="hist-cell" key={k}>
             <div className="hist-key">{k}</div>
             <div className="hist-val">{v}</div>
           </div>
         ))}
       </div>
-      <div className="hist-source">SOURCE: PDF UPLOAD · PROCESSED 07MAY26 14:41</div>
+      <div className="hist-source">
+        SOURCE: GEMINI EXTRACT · PROCESSED VIA BACKEND
+      </div>
     </>
   );
 }
@@ -1382,51 +1579,96 @@ function HistoryBrief({ cells }: { cells: [string, string][] }) {
 /* ═══════════════════════════════════════════════════════════════
    MAIN CHART
 ═══════════════════════════════════════════════════════════════ */
-function MainChart({ patient, color }: { patient: any; color: string }) {
-  const chartData = makeChartData(...(patient.chartBase as [number, number, number, number]));
+function MainChart({
+  patientName,
+  chartData,
+}: {
+  patientName: string;
+  chartData: any[];
+}) {
   return (
     <div className="panel">
       <div className="panel-hd">
         <div>
           <div className="panel-title">COMPREHENSIVE VITAL ANALYSIS</div>
-          <div className="panel-sub">PATIENT: {patient.name} · SYNCHRONIZED MULTI-PARAMETER VIEW</div>
+          <div className="panel-sub">
+            PATIENT: {patientName} · SYNCHRONIZED MULTI-PARAMETER VIEW
+          </div>
         </div>
         <div className="legend">
-          {[["HR","var(--amber)"],["SPO2","var(--crimson)"],["TEMP","var(--t01)"],["RESP","var(--t02)"],["SBP","var(--t02)"]].map(([l,c]) => (
+          {[
+            ["HR", "var(--amber)"],
+            ["SPO2", "var(--crimson)"],
+            ["TEMP", "var(--t01)"],
+            ["RESP", "var(--t02)"],
+            ["SBP", "var(--t02)"],
+          ].map(([l, c]) => (
             <div className="legend-item" key={l}>
-              <div className="legend-line" style={{ background:c }} />
+              <div className="legend-line" style={{ background: c }} />
               <span className="legend-lbl">{l}</span>
             </div>
           ))}
         </div>
       </div>
-      <div style={{ height:360, padding:"16px 20px 10px" }}>
+      <div style={{ height: 360, padding: "16px 20px 10px" }}>
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top:6, right:8, bottom:0, left:0 }}>
+          <AreaChart
+            data={chartData}
+            margin={{ top: 6, right: 8, bottom: 0, left: 0 }}
+          >
             <defs>
               <linearGradient id="fillHr" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#D4810A" stopOpacity={0.40} />
+                <stop offset="0%" stopColor="#D4810A" stopOpacity={0.4} />
                 <stop offset="100%" stopColor="#D4810A" stopOpacity={0.02} />
               </linearGradient>
             </defs>
-            <XAxis dataKey="t" tick={{ fontFamily:"var(--f-mono)", fontSize:10, fill:"var(--t02)" }} axisLine={{ stroke:"var(--l01)" }} tickLine={false} interval={4} />
-            <YAxis tick={{ fontFamily:"var(--f-mono)", fontSize:10, fill:"var(--t02)" }} axisLine={false} tickLine={false} width={32} />
+            <XAxis
+              dataKey="t"
+              tick={{
+                fontFamily: "var(--f-mono)",
+                fontSize: 10,
+                fill: "var(--t02)",
+              }}
+              axisLine={{ stroke: "var(--l01)" }}
+              tickLine={false}
+              interval={4}
+            />
+            <YAxis
+              tick={{
+                fontFamily: "var(--f-mono)",
+                fontSize: 10,
+                fill: "var(--t02)",
+              }}
+              axisLine={false}
+              tickLine={false}
+              width={32}
+            />
             <Tooltip content={<ChartTooltip />} />
-            <Area type="monotone" dataKey="hr" stroke="#D4810A" strokeWidth={2} fill="url(#fillHr)" dot={false} isAnimationActive={false} />
+            <Area
+              type="monotone"
+              dataKey="hr"
+              stroke="#D4810A"
+              strokeWidth={2}
+              fill="url(#fillHr)"
+              dot={false}
+              isAnimationActive={false}
+            />
           </AreaChart>
         </ResponsiveContainer>
       </div>
       <div className="stats-strip">
         {[
-          ["HR VOLATILITY",  "HIGH",      "var(--crimson)"],
-          ["SPO2 TREND",     "DECLINING", "var(--crimson)"],
-          ["TEMP STABILITY", "UNSTABLE",  "var(--amber)"],
-          ["RESP PATTERN",   "IRREGULAR", "var(--amber)"],
-          ["BP VARIANCE",    "NORMAL",    "var(--t01)"],
-        ].map(([lbl,val,col]) => (
+          ["HR VOLATILITY", "HIGH", "var(--crimson)"],
+          ["SPO2 TREND", "DECLINING", "var(--crimson)"],
+          ["TEMP STABILITY", "UNSTABLE", "var(--amber)"],
+          ["RESP PATTERN", "IRREGULAR", "var(--amber)"],
+          ["BP VARIANCE", "NORMAL", "var(--t01)"],
+        ].map(([lbl, val, col]) => (
           <div className="stat-cell" key={lbl}>
             <div className="stat-lbl">{lbl}</div>
-            <div className="stat-val" style={{ color:col }}>{val}</div>
+            <div className="stat-val" style={{ color: col }}>
+              {val}
+            </div>
           </div>
         ))}
       </div>
@@ -1438,34 +1680,64 @@ function MainChart({ patient, color }: { patient: any; color: string }) {
    INFERENCE PANEL
 ═══════════════════════════════════════════════════════════════ */
 function InferencePanel({
-  patient,
+  riskScore,
+  inference,
   clock,
 }: {
-  patient: any;
+  riskScore: number;
+  inference: { name: string; pct: number }[];
   clock: string;
 }) {
   return (
-    <div className="panel" style={{ display:"flex", flexDirection:"column" }}>
+    <div className="panel" style={{ display: "flex", flexDirection: "column" }}>
       <div className="arc-wrap">
         <span className="arc-label">THREAT ARC</span>
-        <ThreatArc score={patient.risk} size={250} />
+        <ThreatArc score={riskScore} size={250} />
       </div>
       <div className="inf-wrap">
         <div className="inf-title">INFERENCE PANEL</div>
         <div className="inf-sub">PRIMARY DRIVERS</div>
-        {patient.inference.map((d: any) => (
-          <div className="inf-row" key={d.name}>
-            <span className="inf-name">{d.name}</span>
-            <div className="inf-bar-bg">
-              <div className="inf-bar-fill" style={{ width:`${d.pct * 3.0}%` }} />
-            </div>
-            <span className="inf-pct">{d.pct}%</span>
+        {inference.length === 0 ? (
+          <div
+            style={{
+              fontFamily: "var(--f-mono)",
+              fontSize: 11,
+              color: "var(--t03)",
+              letterSpacing: "0.10em",
+              lineHeight: 1.8,
+            }}
+          >
+            AWAITING AI INFERENCE
+            <br />
+            NEED 6 VITALS READINGS
           </div>
-        ))}
+        ) : (
+          inference.map((d: any) => (
+            <div className="inf-row" key={d.name}>
+              <span className="inf-name">{d.name}</span>
+              <div className="inf-bar-bg">
+                <div
+                  className="inf-bar-fill"
+                  style={{ width: `${Math.min(100, d.pct * 3.0)}%` }}
+                />
+              </div>
+              <span className="inf-pct">{d.pct}%</span>
+            </div>
+          ))
+        )}
         <div className="inf-footer">
-          <div className="inf-frow"><span className="inf-fkey">MODEL CONFIDENCE:</span><span className="inf-fval">87.4%</span></div>
-          <div className="inf-frow"><span className="inf-fkey">WINDOW:</span><span className="inf-fval">6 RDG / 6HR</span></div>
-          <div className="inf-frow"><span className="inf-fkey">UPDATED:</span><span className="inf-fval">{clock}</span></div>
+          <div className="inf-frow">
+            <span className="inf-fkey">MODEL CONFIDENCE:</span>
+            <span className="inf-fval">87.4%</span>
+          </div>
+          <div className="inf-frow">
+            <span className="inf-fkey">WINDOW:</span>
+            <span className="inf-fval">6 RDG / 6HR</span>
+          </div>
+          <div className="inf-frow">
+            <span className="inf-fkey">UPDATED:</span>
+            <span className="inf-fval">{clock}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -1476,26 +1748,112 @@ function InferencePanel({
    VITAL STREAMS PANEL
 ═══════════════════════════════════════════════════════════════ */
 function VitalStreamsPanel({
-  patient,
+  latestVitals,
+  historicalVitals,
+  hrColor,
 }: {
-  patient: any;
-}) {  const [base, slope, freq, amp] = patient.chartBase;
-  const vitals = patient.vitals;
-  const streams = [
-    { name:"HR",   unit:"BPM", color:patient.hrColor,      val:vitals.hr,   trend:"▲", b:base,    s:slope,     f:freq,    a:amp   },
-    { name:"SPO2", unit:"PCT", color:"var(--crimson)",      val:vitals.spo2, trend:"▼", b:98,      s:-0.19,     f:0.31,    a:1.2   },
-    { name:"TEMP", unit:"°C",  color:"var(--crimson)",      val:vitals.temp, trend:"▲", b:36.6,    s:0.056,     f:0.22,    a:0.11  },
-    { name:"RESP", unit:"RPM", color:"var(--amber)",        val:vitals.resp, trend:"▲", b:18,      s:0.21,      f:0.48,    a:1.0   },
-    { name:"SBP",  unit:"MM",  color:"var(--t01)",          val:vitals.sbp,  trend:"▼", b:128,     s:-0.42,     f:0.29,    a:1.8   },
+  latestVitals: any;
+  historicalVitals: any[];
+  hrColor: string;
+}) {
+  const hrData = makeVStreamFromHistory(historicalVitals, "heart_rate");
+  const spo2Data = makeVStreamFromHistory(historicalVitals, "spo2");
+  const tempData = makeVStreamFromHistory(historicalVitals, "temperature");
+  const respData = makeVStreamFromHistory(historicalVitals, "respiratory_rate");
+  const sbpData = makeVStreamFromHistory(historicalVitals, "systolic_bp");
+
+  const streams: {
+    name: string;
+    unit: string;
+    color: string;
+    val: number;
+    trendDir: "up" | "down" | "flat";
+    data: { t: string; v: number }[];
+    b: number;
+    s: number;
+    f: number;
+    a: number;
+  }[] = [
+    {
+      name: "HR",
+      unit: "BPM",
+      color: hrColor,
+      val: latestVitals?.heart_rate ?? 0,
+      trendDir: "up",
+      data: hrData,
+      b: 80,
+      s: 0.3,
+      f: 0.4,
+      a: 2,
+    },
+    {
+      name: "SPO2",
+      unit: "PCT",
+      color: "var(--crimson)",
+      val: latestVitals?.spo2 ?? 0,
+      trendDir: "down",
+      data: spo2Data,
+      b: 98,
+      s: -0.19,
+      f: 0.31,
+      a: 1.2,
+    },
+    {
+      name: "TEMP",
+      unit: "°C",
+      color: "var(--crimson)",
+      val: latestVitals?.temperature ?? 0,
+      trendDir: "up",
+      data: tempData,
+      b: 36.6,
+      s: 0.056,
+      f: 0.22,
+      a: 0.11,
+    },
+    {
+      name: "RESP",
+      unit: "RPM",
+      color: "var(--amber)",
+      val: latestVitals?.respiratory_rate ?? 0,
+      trendDir: "up",
+      data: respData,
+      b: 18,
+      s: 0.21,
+      f: 0.48,
+      a: 1.0,
+    },
+    {
+      name: "SBP",
+      unit: "MM",
+      color: "var(--t01)",
+      val: latestVitals?.systolic_bp ?? 0,
+      trendDir: "down",
+      data: sbpData,
+      b: 128,
+      s: -0.42,
+      f: 0.29,
+      a: 1.8,
+    },
   ];
   return (
     <div className="panel">
       <div className="panel-hd">
         <div className="panel-title">VITAL STREAM CHARTS</div>
       </div>
-      {streams.map(s => (
-        <VitalStream key={s.name} name={s.name} unit={s.unit} color={s.color}
-          currentVal={+s.val} trend={+s.trend} base={+s.b} slope={+s.s} freq={+s.f} amp={+s.a} />
+      {streams.map((s) => (
+        <VitalStream
+          key={s.name}
+          name={s.name}
+          unit={s.unit}
+          color={s.color}
+          currentVal={s.val}
+          trendDir={s.trendDir}
+          data={s.data}
+          base={s.b}
+          slope={s.s}
+          freq={s.f}
+          amp={s.a}
+        />
       ))}
     </div>
   );
@@ -1505,27 +1863,55 @@ function VitalStreamsPanel({
    CHART VIEW
 ═══════════════════════════════════════════════════════════════ */
 function ChartView({
-  patient,
+  patientName,
+  chartData,
+  temporalRows,
+  historyCells,
+  latestVitals,
+  historicalVitals,
+  riskScore,
+  inference,
+  hrColor,
   clock,
 }: {
-  patient: any;
+  patientName: string;
+  chartData: any[];
+  temporalRows: any[];
+  historyCells: [string, string][];
+  latestVitals: any;
+  historicalVitals: any[];
+  riskScore: number;
+  inference: { name: string; pct: number }[];
+  hrColor: string;
   clock: string;
 }) {
   return (
-    <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
       <div className="section">
-       <MainChart patient={patient} color="#4ADE80" />
+        <MainChart patientName={patientName} chartData={chartData} />
       </div>
       <div className="section">
         <div className="two-col">
-          <div className="panel"><TemporalTable rows={patient.temporal} /></div>
-          <div className="panel"><HistoryBrief cells={patient.history} /></div>
+          <div className="panel">
+            <TemporalTable rows={temporalRows} />
+          </div>
+          <div className="panel">
+            <HistoryBrief cells={historyCells} />
+          </div>
         </div>
       </div>
       <div className="section">
         <div className="two-col">
-          <VitalStreamsPanel patient={patient} />
-          <InferencePanel patient={patient} clock={clock} />
+          <VitalStreamsPanel
+            latestVitals={latestVitals}
+            historicalVitals={historicalVitals}
+            hrColor={hrColor}
+          />
+          <InferencePanel
+            riskScore={riskScore}
+            inference={inference}
+            clock={clock}
+          />
         </div>
       </div>
     </div>
@@ -1536,26 +1922,54 @@ function ChartView({
    COMMAND VIEW
 ═══════════════════════════════════════════════════════════════ */
 function CommandView({
-  patient,
+  patientName,
+  chartData,
+  temporalRows,
+  historyCells,
+  latestVitals,
+  historicalVitals,
+  riskScore,
+  inference,
+  hrColor,
   clock,
 }: {
-  patient: any;
+  patientName: string;
+  chartData: any[];
+  temporalRows: any[];
+  historyCells: [string, string][];
+  latestVitals: any;
+  historicalVitals: any[];
+  riskScore: number;
+  inference: { name: string; pct: number }[];
+  hrColor: string;
   clock: string;
 }) {
   return (
-    <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
       <div className="section">
         <div className="three-col">
-          <div className="panel"><TemporalTable rows={patient.temporal} /></div>
-          <div className="panel"><HistoryBrief cells={patient.history} /></div>
-          <InferencePanel patient={patient} clock={clock} />
+          <div className="panel">
+            <TemporalTable rows={temporalRows} />
+          </div>
+          <div className="panel">
+            <HistoryBrief cells={historyCells} />
+          </div>
+          <InferencePanel
+            riskScore={riskScore}
+            inference={inference}
+            clock={clock}
+          />
         </div>
       </div>
       <div className="section">
-        <MainChart patient={patient} color="#4ADE80" />
+        <MainChart patientName={patientName} chartData={chartData} />
       </div>
       <div className="section">
-        <VitalStreamsPanel patient={patient} />
+        <VitalStreamsPanel
+          latestVitals={latestVitals}
+          historicalVitals={historicalVitals}
+          hrColor={hrColor}
+        />
       </div>
     </div>
   );
@@ -1564,18 +1978,29 @@ function CommandView({
 /* ═══════════════════════════════════════════════════════════════
    TIMELINE
 ═══════════════════════════════════════════════════════════════ */
-function Timeline() {
+function Timeline({
+  events,
+}: {
+  events: { t: string; label: string; color: string; left: string }[];
+}) {
   return (
     <div className="timeline">
       <div className="tl-track">
-        <span className="tl-now">NOW <span className="tl-now-cursor" /></span>
+        <span className="tl-now">
+          NOW <span className="tl-now-cursor" />
+        </span>
       </div>
       <div className="tl-events">
-        {TIMELINE_EVENTS.map(ev => (
-          <div className="tl-event" key={ev.t} style={{ left:ev.left }}>
-            <div className="tl-dot" style={{ background:ev.color, borderColor:ev.color }} />
+        {events.map((ev, idx) => (
+          <div className="tl-event" key={idx} style={{ left: ev.left }}>
+            <div
+              className="tl-dot"
+              style={{ background: ev.color, borderColor: ev.color }}
+            />
             <span className="tl-etime">{ev.t}</span>
-            <span className="tl-elbl" style={{ color:ev.color }}>{ev.label}</span>
+            <span className="tl-elbl" style={{ color: ev.color }}>
+              {ev.label}
+            </span>
           </div>
         ))}
       </div>
@@ -1584,16 +2009,153 @@ function Timeline() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   ROOT DASHBOARD
+   RAIL PATIENT  — shape from API
+═══════════════════════════════════════════════════════════════ */
+interface RailPatient {
+  patient_id: string;
+  age?: number;
+  riskScore: number;
+  status: "CRITICAL" | "ELEVATED" | "STABLE";
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ROOT DASHBOARD  —  full API integration
 ═══════════════════════════════════════════════════════════════ */
 export default function DashboardPage() {
   const clock = useClock();
-  const [activeId, setActiveId] = useState("P-001");
+  const [activeId, setActiveId] = useState<string>("");
   const [view, setView] = useState("chart");
 
-  const patient = PATIENTS.find(p => p.id === activeId) ?? PATIENTS[0];
-  const statusColor = scoreColor(patient.risk);
-  const criticalCount = PATIENTS.filter(p => p.status === "CRITICAL").length;
+  // ── API state ──────────────────────────────────────────────
+  const [railPatients, setRailPatients] = useState<RailPatient[]>([]);
+  const [dashboard, setDashboard] = useState<DashboardResponse | null>(null);
+  const [loadingList, setLoadingList] = useState(true);
+  const [loadingDash, setLoadingDash] = useState(false);
+  const [listError, setListError] = useState<string | null>(null);
+
+  // ── Fetch patient list ─────────────────────────────────────
+  const fetchPatients = useCallback(async () => {
+    setLoadingList(true);
+    setListError(null);
+    try {
+      const patients = await getPatients();
+      const shaped: RailPatient[] = patients.map((p) => ({
+        patient_id: p.patient_id,
+        age: p.age,
+        riskScore: 0,
+        status: "STABLE" as const,
+      }));
+      setRailPatients(shaped);
+      // auto-select first patient if none selected
+      if (shaped.length > 0 && !activeId) {
+        setActiveId(shaped[0].patient_id);
+      }
+    } catch (err: any) {
+      setListError(err?.message ?? "Failed to load patients");
+    } finally {
+      setLoadingList(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    fetchPatients();
+  }, [fetchPatients]);
+
+  // ── Fetch dashboard when activeId changes ──────────────────
+  useEffect(() => {
+    if (!activeId) return;
+    let cancelled = false;
+
+    async function fetchDash() {
+      setLoadingDash(true);
+      try {
+        const data = await getDashboardData(activeId);
+        if (!cancelled) {
+          setDashboard(data);
+          // update rail risk score/status from live prediction
+          const score = riskToScore(data.latestPrediction?.risk_score ?? 0);
+          const status = severityToStatus(
+            data.latestPrediction?.severity ?? "low",
+          );
+          setRailPatients((prev) =>
+            prev.map((p) =>
+              p.patient_id === activeId
+                ? { ...p, riskScore: score, status }
+                : p,
+            ),
+          );
+        }
+      } catch {
+        // silently keep previous dashboard on error
+      } finally {
+        if (!cancelled) setLoadingDash(false);
+      }
+    }
+
+    fetchDash();
+    // poll every 30 s for live updates
+    const poll = setInterval(fetchDash, 30_000);
+    return () => {
+      cancelled = true;
+      clearInterval(poll);
+    };
+  }, [activeId]);
+
+  // ── Acknowledge alert ──────────────────────────────────────
+  async function handleAckAlert(alertId: string) {
+    if (!alertId) return;
+    try {
+      await acknowledgeAlert(alertId);
+      if (activeId) {
+        const data = await getDashboardData(activeId);
+        setDashboard(data);
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
+  // ── Derived display values ─────────────────────────────────
+  const riskScore = riskToScore(dashboard?.latestPrediction?.risk_score ?? 0);
+  const statusLabel = severityToStatus(
+    dashboard?.latestPrediction?.severity ?? "low",
+  );
+  const statusColor = scoreColor(riskScore);
+  const criticalCount = railPatients.filter(
+    (p) => p.status === "CRITICAL",
+  ).length;
+
+  const latestVitals = dashboard?.latestVitals ?? null;
+  const historicalVitals = dashboard?.historicalVitals ?? [];
+  const activeAlerts = dashboard?.activeAlerts ?? [];
+  const patientRecord = dashboard?.patient ?? null;
+
+  const alertText =
+    activeAlerts.length > 0
+      ? activeAlerts.map((a) => a.message).join(" · ")
+      : "NO ACTIVE ALERTS · ALL PARAMETERS NOMINAL";
+
+  const temporalRows = buildTemporalRows(historicalVitals);
+  const historyCells = patientRecord ? buildHistoryCells(patientRecord) : [];
+  const inference = buildInference(
+    dashboard?.latestPrediction?.explanation ?? [],
+  );
+  const timelineEvents = buildTimelineEvents(activeAlerts);
+
+  const chartData =
+    historicalVitals.length > 0
+      ? makeChartDataFromHistory(historicalVitals)
+      : makeChartData(80, 0.3, 0.4, 2);
+
+  const hrColor =
+    statusLabel === "CRITICAL"
+      ? "var(--crimson)"
+      : statusLabel === "ELEVATED"
+        ? "var(--amber)"
+        : "var(--t01)";
+
+  const patientAge = patientRecord?.age;
 
   return (
     <>
@@ -1612,7 +2174,14 @@ export default function DashboardPage() {
           </div>
           <div className="topbar-mid">
             <div className="tb-live-dot" />
-            <span style={{ fontFamily:"var(--f-mono)", fontSize:12, color:"var(--amber)", letterSpacing:"0.16em" }}>
+            <span
+              style={{
+                fontFamily: "var(--f-mono)",
+                fontSize: 12,
+                color: "var(--amber)",
+                letterSpacing: "0.16em",
+              }}
+            >
               LIVE ICU NETWORK
             </span>
           </div>
@@ -1626,11 +2195,10 @@ export default function DashboardPage() {
         </header>
 
         {/* ── INTAKE BAR ──────────────────── */}
-        <PatientIntakeBar />
+        <PatientIntakeBar onRegistered={fetchPatients} />
 
         {/* ── BODY ────────────────────────── */}
         <div className="vigil-body">
-
           {/* ── RAIL ──────────────────────── */}
           <aside className="rail">
             <div className="rail-header">
@@ -1638,20 +2206,82 @@ export default function DashboardPage() {
               <span className="rail-time">{clock}</span>
             </div>
             <div className="rail-patients">
-              {PATIENTS.map((p, i) => (
+              {loadingList && (
                 <div
-                  key={p.id}
-                  className={patientClass(p, activeId)}
-                  style={{ animationDelay:`${i * 40}ms` }}
-                  onClick={() => setActiveId(p.id)}
+                  style={{
+                    padding: "24px 20px",
+                    fontFamily: "var(--f-mono)",
+                    fontSize: 11,
+                    color: "var(--t03)",
+                    letterSpacing: "0.14em",
+                  }}
+                >
+                  LOADING PATIENTS…
+                </div>
+              )}
+              {!loadingList && listError && (
+                <div
+                  style={{
+                    padding: "16px 20px",
+                    fontFamily: "var(--f-mono)",
+                    fontSize: 10,
+                    color: "var(--crimson)",
+                    letterSpacing: "0.12em",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  FETCH ERROR
+                  <br />
+                  {listError}
+                </div>
+              )}
+              {!loadingList && !listError && railPatients.length === 0 && (
+                <div
+                  style={{
+                    padding: "24px 20px",
+                    fontFamily: "var(--f-mono)",
+                    fontSize: 11,
+                    color: "var(--t03)",
+                    letterSpacing: "0.14em",
+                    lineHeight: 1.8,
+                  }}
+                >
+                  NO PATIENTS REGISTERED
+                  <br />
+                  <span style={{ fontSize: 10, color: "var(--t04)" }}>
+                    USE INTAKE FORM ABOVE
+                  </span>
+                </div>
+              )}
+              {railPatients.map((p, i) => (
+                <div
+                  key={p.patient_id}
+                  className={patientRowClass(
+                    p.riskScore,
+                    p.status,
+                    activeId,
+                    p.patient_id,
+                  )}
+                  style={{ animationDelay: `${i * 40}ms` }}
+                  onClick={() => setActiveId(p.patient_id)}
                 >
                   <div className="pr-top">
-                    <span className="pr-id">{p.id}</span>
-                    <span className="pr-score" style={{ color:scoreColor(p.risk) }}>{p.risk}</span>
+                    <span className="pr-id">{p.patient_id}</span>
+                    <span
+                      className="pr-score"
+                      style={{ color: scoreColor(p.riskScore) }}
+                    >
+                      {p.riskScore}
+                    </span>
                   </div>
-                  <div className="pr-name">{p.name}</div>
-                  <div className="pr-meta">{p.gender} / {p.age} · {p.bed}</div>
-                  <div className="pr-status" style={{ color:scoreColor(p.risk) }}>{p.status}</div>
+                  <div className="pr-name">{p.patient_id}</div>
+                  <div className="pr-meta">{p.age ? `AGE ${p.age}` : "–"}</div>
+                  <div
+                    className="pr-status"
+                    style={{ color: scoreColor(p.riskScore) }}
+                  >
+                    {p.status}
+                  </div>
                 </div>
               ))}
             </div>
@@ -1659,58 +2289,137 @@ export default function DashboardPage() {
 
           {/* ── WORKSPACE ─────────────────── */}
           <main className="workspace">
-
-            {/* Status band */}
-            <div className="status-band">
-              <div className="sb-meta">
-                <span className="sb-item">{patient.id}</span>
-                <div className="sb-sep" />
-                <span className="sb-name">{patient.name}</span>
-                <div className="sb-sep" />
-                <span className="sb-item">{patient.age}Y</span>
-                <div className="sb-sep" />
-                <span className="sb-item">{patient.bed}</span>
-                <div className="sb-sep" />
-                <span className="sb-item">ADM: {patient.admitted}</span>
+            {!activeId ? (
+              <div className="no-patient">
+                <div className="no-patient-icon">⊕</div>
+                <div className="no-patient-text">
+                  SELECT OR REGISTER A PATIENT
+                </div>
               </div>
-              <div className="sb-right">
-                <span className="sb-score" style={{ color:statusColor }}>{patient.risk}</span>
-                <span className="sb-sev" style={{ color:statusColor }}>{patient.status}</span>
-              </div>
-            </div>
+            ) : (
+              <>
+                {/* Status band */}
+                <div className="status-band">
+                  <div className="sb-meta">
+                    <span className="sb-item">{activeId}</span>
+                    {patientAge && (
+                      <>
+                        <div className="sb-sep" />
+                        <span className="sb-item">{patientAge}Y</span>
+                      </>
+                    )}
+                    {loadingDash && (
+                      <>
+                        <div className="sb-sep" />
+                        <span
+                          className="sb-item"
+                          style={{ color: "var(--t03)" }}
+                        >
+                          SYNCING…
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <div className="sb-right">
+                    <span className="sb-score" style={{ color: statusColor }}>
+                      {riskScore}
+                    </span>
+                    <span className="sb-sev" style={{ color: statusColor }}>
+                      {statusLabel}
+                    </span>
+                  </div>
+                </div>
 
-            {/* Alert strip */}
-            <div className="alert-strip">
-              <div className="alert-icon" />
-              <span className="alert-text">{patient.alert}</span>
-            </div>
+                {/* Alert strip — click × icon to acknowledge first unacked alert */}
+                <div className="alert-strip">
+                  <div
+                    className="alert-icon"
+                    style={{
+                      cursor: activeAlerts.length > 0 ? "pointer" : "default",
+                    }}
+                    onClick={() => {
+                      const first = activeAlerts.find(
+                        (a: DashboardAlert) => !a.acknowledged && a._id,
+                      );
+                      if (first?._id) handleAckAlert(first._id);
+                    }}
+                    title={
+                      activeAlerts.length > 0
+                        ? "Click to acknowledge"
+                        : undefined
+                    }
+                  />
+                  <span className="alert-text">{alertText}</span>
+                </div>
 
-            {/* View tabs */}
-            <div className="view-tabs">
-              {[
-                { key:"chart",   label:"CHART VIEW"   },
-                { key:"command", label:"COMMAND VIEW"  },
-              ].map(({ key, label }) => (
-                <button key={key} className={`view-tab${view===key?" active":""}`} onClick={() => setView(key)}>
-                  {label}
-                </button>
-              ))}
-            </div>
+                {/* View tabs */}
+                <div className="view-tabs">
+                  {[
+                    { key: "chart", label: "CHART VIEW" },
+                    { key: "command", label: "COMMAND VIEW" },
+                  ].map(({ key, label }) => (
+                    <button
+                      key={key}
+                      className={`view-tab${view === key ? " active" : ""}`}
+                      onClick={() => setView(key)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
 
-            {/* Canvas */}
-            <div style={{ flex:1, paddingBottom:24 }}>
-              {view === "chart"   && <ChartView   patient={patient} clock={clock} />}
-              {view === "command" && <CommandView patient={patient} clock={clock} />}
-            </div>
+                {/* Canvas */}
+                <div style={{ flex: 1, paddingBottom: 24 }}>
+                  {view === "chart" && (
+                    <ChartView
+                      patientName={activeId}
+                      chartData={chartData}
+                      temporalRows={temporalRows}
+                      historyCells={historyCells}
+                      latestVitals={latestVitals}
+                      historicalVitals={historicalVitals}
+                      riskScore={riskScore}
+                      inference={inference}
+                      hrColor={hrColor}
+                      clock={clock}
+                    />
+                  )}
+                  {view === "command" && (
+                    <CommandView
+                      patientName={activeId}
+                      chartData={chartData}
+                      temporalRows={temporalRows}
+                      historyCells={historyCells}
+                      latestVitals={latestVitals}
+                      historicalVitals={historicalVitals}
+                      riskScore={riskScore}
+                      inference={inference}
+                      hrColor={hrColor}
+                      clock={clock}
+                    />
+                  )}
+                </div>
 
-            {/* Timeline */}
-            <Timeline />
+                {/* Timeline */}
+                <Timeline events={timelineEvents} />
+              </>
+            )}
 
             {/* Bottom bar */}
             <footer className="bottombar">
               <div className="bb-keys">
-                {["↑↓ NAV","ENTER SELECT","F9 ACK","F10 EXPAND","SPACE PAUSE","←→ PAN"].map((k, i, a) => (
-                  <div key={k} style={{ display:"flex", alignItems:"center", gap:14 }}>
+                {[
+                  "↑↓ NAV",
+                  "ENTER SELECT",
+                  "F9 ACK",
+                  "F10 EXPAND",
+                  "SPACE PAUSE",
+                  "←→ PAN",
+                ].map((k, i, a) => (
+                  <div
+                    key={k}
+                    style={{ display: "flex", alignItems: "center", gap: 14 }}
+                  >
                     <span className="bb-key">{k}</span>
                     {i < a.length - 1 && <div className="bb-sep" />}
                   </div>

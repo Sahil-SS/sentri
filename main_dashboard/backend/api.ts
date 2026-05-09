@@ -1,4 +1,4 @@
-const BASE_URL = "https://loyal-magic-production-0fce.up.railway.app/";
+const BASE_URL = "https://loyal-magic-production-0fce.up.railway.app";
 
 // ─────────────────────────────────────────────────────────────
 // HELPERS
