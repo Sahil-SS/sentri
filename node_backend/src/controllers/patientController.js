@@ -23,10 +23,17 @@ const registerPatient =
 
     try {
 
-      const {
-        patient_id,
-        history_text,
-      } = req.body;
+console.log("REQ BODY:");
+console.log(req.body);
+
+console.log("REQ FILE:");
+console.log(req.file);
+
+const patient_id =
+  req.body?.patient_id;
+
+const history_text =
+  req.body?.history_text;
 
       let finalHistoryText =
         history_text;

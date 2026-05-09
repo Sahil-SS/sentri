@@ -1,4 +1,4 @@
-import joblib
+import joblib # type: ignore
 
 # ------------------------------------------
 # Load trained model
