@@ -1,15 +1,85 @@
-# Sentri AI Backend Documentation
+# Sentri — AI Model WorkFlow 
 
-# Overview
+## Overview
 
-Sentri is a temporal ICU deterioration intelligence system designed to predict early sepsis and patient deterioration using rolling physiological trends instead of static threshold-based monitoring.
+Sentri is an AI-powered ICU deterioration intelligence system designed to predict early sepsis risk using temporal physiological trends from patient vital signs.
 
-The system:
-- receives rolling vital streams
-- performs temporal feature engineering
-- predicts deterioration risk using XGBoost
-- returns explainable AI responses
-- supports real-time ICU-style monitoring
+Unlike traditional static prediction systems that rely on single-time measurements, Sentri analyzes:
+
+- temporal behavior of vital signs
+- deterioration trends
+- worsening physiological patterns
+- acceleration of patient decline
+- deviation from baseline patient health
+
+The system continuously evaluates ICU patient data and generates dynamic sepsis risk scores for real-time monitoring and early intervention.
+
+---
+
+# Final System Goal
+
+Sentri aims to:
+
+- reduce alert fatigue
+- predict deterioration earlier
+- provide explainable ICU intelligence
+- improve real-time patient monitoring
+- support proactive clinical intervention
+
+---
+
+# Complete System Architecture
+
+```text
+Simulator / Hardware
+        ↓
+Node.js Backend
+        ↓
+MongoDB
+(continuous vitals storage)
+        ↓
+Node.js fetches latest 6 vitals
+        ↓
+FastAPI AI Backend
+        ↓
+Temporal Feature Engineering
+        ↓
+XGBoost Prediction
+        ↓
+Explainability Engine
+        ↓
+Frontend Dashboard
+```
+
+---
+
+# High-Level AI Workflow
+
+```text
+Raw ICU Dataset
+       ↓
+Data Cleaning & Missing Value Handling
+       ↓
+Chronological Patient Sorting
+       ↓
+Patient Historical Data Generation
+       ↓
+Temporal Feature Engineering
+       ↓
+Sliding Window Processing
+       ↓
+XGBoost Machine Learning Model
+       ↓
+Risk Probability Prediction
+       ↓
+Risk Smoothing
+       ↓
+Severity Classification
+       ↓
+Visualization & Monitoring
+       ↓
+Model Export & Deployment
+```
 
 ---
 
@@ -17,22 +87,28 @@ The system:
 
 ## Model Used
 
-XGBoost Classifier
+- XGBoost Classifier
 
-## Why XGBoost?
+---
+
+# Why XGBoost?
 
 XGBoost was selected because it performs extremely well on:
+
 - structured medical tabular data
 - temporal engineered features
 - smaller datasets
 - imbalanced healthcare datasets
 
-Advantages:
+---
+
+# Advantages of XGBoost
+
 - fast inference
 - explainability support
 - stable predictions
 - handles imbalance well
-- excellent for healthcare ML
+- excellent for healthcare machine learning
 
 ---
 
@@ -40,27 +116,30 @@ Advantages:
 
 The model does NOT directly detect infection.
 
-Instead it detects:
+Instead, it detects:
+
 - physiological deterioration trends
 - worsening temporal behavior
 - baseline deviations
 - deterioration acceleration
 
-Pipeline:
+---
+
+# AI Prediction Pipeline
 
 ```text
 Rolling ICU Vitals
-↓
+        ↓
 Temporal Window Extraction
-↓
+        ↓
 Feature Engineering
-↓
+        ↓
 Slope + Acceleration Analysis
-↓
+        ↓
 XGBoost Inference
-↓
+        ↓
 Continuous Risk Score
-↓
+        ↓
 Explainable AI Output
 ```
 
@@ -68,29 +147,122 @@ Explainable AI Output
 
 # Temporal Intelligence
 
-The model uses:
+Instead of:
+- single snapshot prediction
+
+the model performs:
+- continuous deterioration analysis
+
+The system uses:
 - rolling windows
 - slopes
 - acceleration
 - baseline comparisons
 
-Instead of:
+---
 
-```text
-single snapshot prediction
+# Working Flow
+
+---
+
+# 1. Dataset Loading
+
+The ICU dataset is loaded into a pandas DataFrame.
+
+```python
+df = pd.read_csv("Dataset.csv")
 ```
 
-it performs:
+---
+
+# 2. Data Cleaning
+
+Missing values are handled using:
+
+- Forward Fill (`ffill`)
+- Backward Fill (`bfill`)
+- Null Row Removal
+
+```python
+df.fillna(method='ffill')
+df.fillna(method='bfill')
+```
+
+---
+
+# 3. Chronological Sorting
+
+Patient records are sorted by:
+
+- `Patient_ID`
+- `Hour`
+
+```python
+df.sort_values(by=['Patient_ID', 'Hour'])
+```
+
+This preserves temporal continuity.
+
+---
+
+# 4. Synthetic Historical Data Generation
+
+The notebook generates additional patient baseline features:
+
+- diabetes
+- smoker
+- BMI
+- baseline vitals
+- heart disease
+- kidney disease
+
+---
+
+# 5. Sliding Window Analysis
+
+The system uses:
+
+```python
+window_size = 6
+```
+
+This means:
+- the previous 6 hours of patient vitals
+- are used to predict future deterioration risk.
+
+---
+
+# Sliding Window Concept
 
 ```text
-continuous deterioration analysis
+Hour 1 → Hour 6 → Predict Risk
+Hour 2 → Hour 7 → Predict Risk
+Hour 3 → Hour 8 → Predict Risk
 ```
+
+---
+
+# 6. Temporal Feature Engineering
+
+Feature engineering is the core intelligence layer.
+
+The system extracts:
+
+| Feature Type | Purpose |
+|---|---|
+| Mean | Average condition |
+| Standard Deviation | Variability |
+| Slope | Trend direction |
+| Acceleration | Deterioration speed |
+| Baseline Delta | Deviation from normal |
 
 ---
 
 # Input Features
 
-## Heart Rate Features
+---
+
+# Heart Rate Features
 
 - hr_mean
 - hr_std
@@ -98,32 +270,42 @@ continuous deterioration analysis
 - hr_acceleration
 - hr_above_baseline
 
-## SpO2 Features
+---
+
+# SpO2 Features
 
 - spo2_mean
 - spo2_std
 - spo2_slope
 - spo2_acceleration
 
-## Temperature Features
+---
+
+# Temperature Features
 
 - temp_mean
 - temp_slope
 - temp_acceleration
 
-## Respiratory Features
+---
+
+# Respiratory Features
 
 - resp_mean
 - resp_slope
 - resp_acceleration
 
-## Blood Pressure Features
+---
+
+# Blood Pressure Features
 
 - sbp_mean
 - map_mean
 - sbp_above_baseline
 
-## Patient History Features
+---
+
+# Patient History Features
 
 - age
 - age_60_plus
@@ -138,109 +320,141 @@ continuous deterioration analysis
 
 ---
 
-# Model Training Improvements
+# 7. Slope Analysis
 
-## Challenge 1 — Missing Medical History
+The notebook calculates slopes to identify worsening physiological trends.
 
-Problem:
-The ICU dataset lacked medical history.
+Example:
 
-Solution:
-Synthetic medical history generation:
-- diabetes
-- smoker
-- BMI
-- heart disease
-- kidney disease
-- baseline vitals
+```text
+HR: 80 → 84 → 88 → 92
+```
+
+Positive slope:
+- indicates continuous deterioration.
 
 ---
 
-## Challenge 2 — Temporal Intelligence
+# 8. Acceleration Analysis
 
-Problem:
-Initial model only analyzed static vitals.
+Acceleration measures:
+- how quickly deterioration itself is increasing.
 
-Solution:
-Rolling temporal windows were introduced.
+Added features:
 
-The model learned:
-- progression
-- worsening trends
-- deterioration momentum
+- hr_acceleration
+- spo2_acceleration
+- temp_acceleration
+- resp_acceleration
+
+This improves:
+- early escalation detection
+- deterioration momentum analysis
 
 ---
 
-## Challenge 3 — Class Imbalance
+# 9. Model Training
 
-Problem:
+The system trains an:
+
+```python
+XGBClassifier()
+```
+
+using:
+- engineered temporal features
+- patient history
+- rolling windows
+
+---
+
+# 10. Handling Class Imbalance
+
+## Problem
+
 Only ~2% sepsis cases existed.
 
-Solution:
+## Solution
+
 Used:
 
 ```python
 scale_pos_weight
 ```
 
-inside XGBoost to improve sepsis detection.
+inside XGBoost to improve sepsis sensitivity.
 
 ---
 
-## Challenge 4 — Risk Spikes
+# 11. Risk Probability Prediction
 
-Problem:
+Instead of binary outputs:
+
+```text
+0 = No Sepsis
+1 = Sepsis
+```
+
+the model generates continuous risk probabilities.
+
+Example:
+
+```text
+0.12
+0.35
+0.76
+0.91
+```
+
+---
+
+# 12. Risk Smoothing
+
+## Problem
+
 Predictions fluctuated unrealistically.
 
-Solution:
-Implemented exponential risk smoothing.
+## Solution
 
-This produced:
-- ICU-style monitoring
+Implemented:
+- exponential moving average smoothing
+
+Benefits:
 - smoother escalation
+- ICU-style monitoring
 - stable risk progression
 
 ---
 
-## Challenge 5 — No Deterioration Momentum
+# 13. Severity Classification
 
-Problem:
-Model only understood slopes.
+| Risk Score | Severity |
+|---|---|
+| 0–30 | Low |
+| 30–60 | Medium |
+| 60+ | High |
 
-Solution:
-Acceleration features added:
-- hr_acceleration
-- spo2_acceleration
-- temp_acceleration
-- resp_acceleration
+---
 
-This improved:
-- early escalation
-- deterioration tracking
-- sustained risk rise
+# 14. Explainability System
+
+The backend generates explainable medical reasoning.
+
+Examples:
+
+- Heart rate rising steadily
+- Oxygen saturation decreasing
+- Temperature increasing
+- Respiratory distress worsening
+
+This makes the AI:
+- interpretable
+- clinically understandable
+- demo-friendly
 
 ---
 
 # Backend Architecture
-
-```text
-Simulator / Hardware
-↓
-Node.js Backend
-↓
-MongoDB
-(continuous vitals storage)
-↓
-Node.js fetches latest 6 vitals
-↓
-FastAPI AI Backend
-↓
-Temporal Feature Engineering
-↓
-XGBoost Prediction
-↓
-Frontend Dashboard
-```
 
 ---
 
@@ -257,7 +471,12 @@ Node.js fetches:
 
 before sending them to FastAPI.
 
+---
+
+# Why MongoDB?
+
 This architecture:
+
 - preserves temporal continuity
 - supports historical analytics
 - enables replay visualization
@@ -268,14 +487,18 @@ This architecture:
 
 # Why Feature Engineering Happens in FastAPI
 
-Node.js responsibilities:
-- store incoming streaming vitals in MongoDB
-- fetch latest 6 vitals for each patient
-- reverse temporal order correctly
+## Node.js Responsibilities
+
+- store incoming streaming vitals
+- fetch latest 6 vitals
+- reverse temporal order
 - fetch patient medical history
 - send rolling windows to FastAPI
 
-FastAPI responsibilities:
+---
+
+## FastAPI Responsibilities
+
 - temporal feature engineering
 - slope analysis
 - acceleration analysis
@@ -309,18 +532,22 @@ sentri-ai-backend/
 
 ---
 
-# Installing Dependencies
+# Installation Guide
 
-## Create Virtual Environment
+---
 
-Windows:
+# Create Virtual Environment
+
+## Windows
 
 ```bash
 python -m venv venv
 venv\Scripts\activate
 ```
 
-Mac/Linux:
+---
+
+## Mac/Linux
 
 ```bash
 python3 -m venv venv
@@ -329,7 +556,7 @@ source venv/bin/activate
 
 ---
 
-## Install Packages
+# Install Dependencies
 
 ```bash
 pip install fastapi uvicorn pandas numpy scikit-learn xgboost joblib python-multipart
@@ -345,8 +572,6 @@ pip install -r requirements.txt
 
 # Starting the Server
 
-Run:
-
 ```bash
 uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
 ```
@@ -355,13 +580,17 @@ uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
 
 # Backend URLs
 
-## Base URL
+---
+
+# Base URL
 
 ```text
 http://localhost:8080
 ```
 
-## Swagger Docs
+---
+
+# Swagger Documentation
 
 ```text
 http://localhost:8080/docs
@@ -371,7 +600,9 @@ http://localhost:8080/docs
 
 # API Endpoints
 
-# 1. Health Check
+---
+
+# 1. Health Check Endpoint
 
 ## Endpoint
 
@@ -394,7 +625,7 @@ GET /
 ## Endpoint
 
 ```http
-POST http://localhost:8080/predict
+POST /predict
 ```
 
 ---
@@ -497,33 +728,6 @@ POST http://localhost:8080/predict
 
 ---
 
-# Risk Severity Logic
-
-| Risk Score | Severity |
-|---|---|
-| 0–30 | Low |
-| 30–60 | Medium |
-| 60+ | High |
-
----
-
-# Explainability System
-
-The backend generates explainable medical reasoning.
-
-Examples:
-- Heart rate rising steadily
-- Oxygen saturation decreasing
-- Temperature increasing
-- Respiratory distress worsening
-
-This makes the AI:
-- interpretable
-- clinically understandable
-- demo-friendly
-
----
-
 # Postman Testing
 
 ## Method
@@ -545,16 +749,14 @@ raw → JSON
 ```
 
 Paste the request payload and click:
-
-```text
-Send
-```
+- Send
 
 ---
 
 # Current Capabilities
 
-Completed:
+Completed Features:
+
 - temporal monitoring
 - rolling window inference
 - MongoDB temporal storage
@@ -571,6 +773,7 @@ Completed:
 # Future Improvements
 
 Planned upgrades:
+
 - SHAP explainability
 - WebSocket streaming
 - Redis buffers
@@ -583,11 +786,43 @@ Planned upgrades:
 
 ---
 
-# Final System Goal
+# Final Workflow Summary
 
-Sentri aims to:
-- reduce alert fatigue
-- predict deterioration earlier
-- provide explainable ICU intelligence
-- improve real-time patient monitoring
-- support proactive clinical intervention
+```text
+Patient Vitals
+      ↓
+Temporal Analysis
+      ↓
+Feature Engineering
+      ↓
+Trend & Acceleration Detection
+      ↓
+XGBoost Prediction
+      ↓
+Risk Probability
+      ↓
+Risk Smoothing
+      ↓
+Severity Classification
+      ↓
+Explainable AI Output
+      ↓
+Real-Time ICU Monitoring
+```
+
+---
+
+# Conclusion
+
+Sentri combines:
+
+- temporal physiological analysis
+- machine learning
+- deterioration intelligence
+- explainable AI
+- real-time monitoring
+- scalable backend architecture
+
+to build an advanced ICU deterioration prediction system capable of early sepsis detection and continuous patient risk monitoring.
+
+The project demonstrates how AI can move beyond static classification and instead model dynamic physiological deterioration behavior over time.
