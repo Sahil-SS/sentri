@@ -1,11 +1,6 @@
 const Alert = require("../models/Alert");
 
-const createAlert = async (
-  patient_id,
-  severity,
-  message
-) => {
-
+const createAlert = async (patient_id, severity, message) => {
   return await Alert.create({
     patient_id,
     severity,
