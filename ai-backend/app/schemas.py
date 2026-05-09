@@ -1,8 +1,10 @@
 from pydantic import BaseModel
 
+from typing import List
+
 
 # ------------------------------------------
-# Single vital reading
+# Single rolling vital reading
 # ------------------------------------------
 
 class VitalReading(BaseModel):
@@ -21,7 +23,7 @@ class VitalReading(BaseModel):
 
 
 # ------------------------------------------
-# Patient history
+# Patient medical history
 # ------------------------------------------
 
 class PatientHistory(BaseModel):
@@ -55,4 +57,4 @@ class PredictionRequest(BaseModel):
 
     history: PatientHistory
 
-    vitals_window: list[VitalReading]
+    vitals_window: List[VitalReading]

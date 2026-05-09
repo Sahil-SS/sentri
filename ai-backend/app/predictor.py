@@ -2,6 +2,7 @@ from app.model_loader import (
     model,
     feature_columns
 )
+
 from app.feature_engineering import (
     create_feature_vector
 )
@@ -18,7 +19,7 @@ from app.explanations import (
 def predict_risk(request):
 
     # --------------------------------------
-    # Create feature vector
+    # Feature engineering
     # --------------------------------------
 
     features = create_feature_vector(
@@ -26,7 +27,7 @@ def predict_risk(request):
     )
 
     # --------------------------------------
-    # Ensure correct column order
+    # Ensure exact training order
     # --------------------------------------
 
     features = features[
@@ -34,25 +35,42 @@ def predict_risk(request):
     ]
 
     # --------------------------------------
-    # Predict probability
+    # DEBUG FEATURE VECTOR
+    # --------------------------------------
+
+    print("\nFEATURE VECTOR:")
+    print(features)
+
+    # --------------------------------------
+    # Predict probabilities
+    # --------------------------------------
+
+    probas = model.predict_proba(
+        features
+    )[0]
+
+    print("\nRAW PROBABILITIES:")
+    print(probas)
+
+    # --------------------------------------
+    # IMPORTANT:
+    # Using class 0 probability
+    # as deterioration risk
     # --------------------------------------
 
     probability = (
-
-        model.predict_proba(features)[0][1]
-
-        * 100
+        probas[0] * 100
     )
 
     # --------------------------------------
-    # Determine severity
+    # Severity thresholds
     # --------------------------------------
 
-    if probability < 30:
+    if probability < 35:
 
         severity = "low"
 
-    elif probability < 60:
+    elif probability < 50:
 
         severity = "medium"
 
@@ -61,26 +79,39 @@ def predict_risk(request):
         severity = "high"
 
     # --------------------------------------
-    # Generate explanations
+    # Explainability
     # --------------------------------------
 
     explanations = generate_explanations(
         features
     )
 
+    # --------------------------------------
+    # Final response
+    # --------------------------------------
+
     return {
 
-        "patient_id": str(request.patient_id),
+        "patient_id": str(
+            request.patient_id
+        ),
 
         "risk_score": float(
-        round(probability, 2)
-    ),
+            round(probability, 2)
+        ),
 
+        "severity": str(
+            severity
+        ),
 
-        "severity": str(severity),
+        "window_size": int(
+            len(request.vitals_window)
+        ),
 
-         "explanations": [
-        str(exp)
-        for exp in explanations
-    ]
+        "explanations": [
+
+            str(exp)
+
+            for exp in explanations
+        ]
     }
