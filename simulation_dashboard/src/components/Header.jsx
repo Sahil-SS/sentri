@@ -1,92 +1,98 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useVitals } from '@/context/VitalsContext';
+"use client";
+import { useState, useEffect } from "react";
+import { useVitals } from "@/context/VitalsContext";
 
 export default function Header() {
-  const [time, setTime] = useState('');
-  const [date, setDate] = useState('');
+  const [time, setTime] = useState("");
+  const [date, setDate] = useState("");
   const { backendStatus } = useVitals();
 
   useEffect(() => {
     const update = () => {
       const now = new Date();
       setTime(now.toTimeString().slice(0, 8));
-      setDate(now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }));
+      setDate(
+        now.toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        }),
+      );
     };
     update();
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
   }, []);
 
+  const statusColor =
+    backendStatus === "ok"
+      ? "#00ff7f"
+      : backendStatus === "offline"
+        ? "#ff3333"
+        : "#ffaa00";
+
   return (
-    <header style={{
-      height: '48px',
-      background: 'var(--bg-header)',
-      borderBottom: '1px solid var(--bg-panel-border)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: '0 20px',
-      position: 'sticky',
-      top: 0,
-      zIndex: 100,
-    }}>
-      {/* Left: Brand + Live */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{
-            width: '8px', height: '8px', borderRadius: '50%',
-            background: 'var(--accent-blue)',
-            boxShadow: '0 0 8px var(--accent-blue)',
-          }} />
-          <span style={{
-            fontFamily: 'Share Tech Mono, monospace',
-            fontSize: '1rem',
-            color: 'var(--accent-blue)',
-            letterSpacing: '0.1em',
-            fontWeight: 600,
-          }}>SENTRI ICU</span>
+    <header className="h-12 border-b border-[#1a2332] flex items-center justify-between px-5 sticky top-0 z-50 bg-[#050a05]">
+      {/* Left: Brand */}
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <div
+            className="w-2 h-2 rounded-full"
+            style={{ background: "#00e5ff", boxShadow: "0 0 8px #00e5ff" }}
+          />
+          <span
+            className="text-base font-semibold tracking-widest"
+            style={{
+              fontFamily: "Share Tech Mono, monospace",
+              color: "#00e5ff",
+            }}
+          >
+            SENTRI ICU
+          </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <div className="pulse-dot" style={{
-            width: '7px', height: '7px', borderRadius: '50%',
-            background: 'var(--status-ok)',
-          }} />
-          <span style={{
-            fontFamily: 'Share Tech Mono, monospace',
-            fontSize: '0.65rem',
-            color: 'var(--status-ok)',
-            letterSpacing: '0.2em',
-          }}>LIVE</span>
+        <div className="flex items-center gap-1.5">
+          <div
+            className="w-1.5 h-1.5 rounded-full animate-pulse"
+            style={{ background: statusColor }}
+          />
+          <span
+            className="text-[0.65rem] tracking-[0.2em]"
+            style={{
+              fontFamily: "Share Tech Mono, monospace",
+              color: statusColor,
+            }}
+          >
+            {backendStatus === "ok"
+              ? "LIVE"
+              : backendStatus === "offline"
+                ? "OFFLINE"
+                : "CONNECTING"}
+          </span>
         </div>
       </div>
 
       {/* Center: Clock */}
-      <div style={{ textAlign: 'center' }}>
-        <div style={{
-          fontFamily: 'Share Tech Mono, monospace',
-          fontSize: '1.2rem',
-          color: 'var(--ecg-green)',
-          letterSpacing: '0.1em',
-        }}>{time}</div>
-        <div style={{
-          fontFamily: 'Share Tech Mono, monospace',
-          fontSize: '0.6rem',
-          color: 'var(--text-secondary)',
-          letterSpacing: '0.1em',
-        }}>{date}</div>
+      <div className="text-center">
+        <div
+          className="text-xl tracking-widest"
+          style={{ fontFamily: "Share Tech Mono, monospace", color: "#00ff7f" }}
+        >
+          {time}
+        </div>
+        <div
+          className="text-[0.6rem] tracking-widest"
+          style={{ fontFamily: "Share Tech Mono, monospace", color: "#4a5568" }}
+        >
+          {date}
+        </div>
       </div>
 
       {/* Right: Ward info */}
-      <div style={{
-        fontFamily: 'Share Tech Mono, monospace',
-        fontSize: '0.7rem',
-        color: 'var(--text-secondary)',
-        textAlign: 'right',
-        letterSpacing: '0.05em',
-      }}>
+      <div
+        className="text-right text-[0.7rem] tracking-wide"
+        style={{ fontFamily: "Share Tech Mono, monospace", color: "#4a5568" }}
+      >
         <div>Ward 4B · ICU</div>
         <div>Nurse: K. Sharma</div>
       </div>
