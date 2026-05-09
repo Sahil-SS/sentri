@@ -104,7 +104,7 @@ export default function Navbar() {
                 text-[var(--t00)]
               "
             >
-              Sentinel Protocol
+              Sentri
             </span>
           </Link>
 
@@ -145,6 +145,7 @@ export default function Navbar() {
             "
           >
             {/* CTA */}
+            <Link href="/dashboard">
             <button
               className="
                 hidden
@@ -158,6 +159,7 @@ export default function Navbar() {
             >
               Launch Demo →
             </button>
+              </Link>
 
             {/* MOBILE MENU */}
             <button

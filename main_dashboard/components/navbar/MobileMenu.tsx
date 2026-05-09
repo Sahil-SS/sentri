@@ -57,7 +57,7 @@ export default function MobileMenu({
               text-sm
             "
           >
-            Sentinel Protocol
+            Sentri
           </p>
         </div>
 

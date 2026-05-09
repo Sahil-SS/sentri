@@ -1,5 +1,6 @@
 import Button from "@/components/shared/Button";
 import AmberCursor from "@/components/shared/AmberCursor";
+import Link from "next/link";
 
 export default function HeroText() {
   return (
@@ -16,7 +17,7 @@ export default function HeroText() {
         "
       >
         <p className="label">
-          SP-1 · VIGIL-7 · ICU COMMAND
+          SP-1 · SENTRI · ICU COMMAND
           INTELLIGENCE
         </p>
 
@@ -33,12 +34,10 @@ export default function HeroText() {
         }}
       >
         <h1 className="mb-8">
-          SENTINEL
+          SENTRI
           <br />
 
-          <span className="ml-0 lg:ml-12">
-            PROTOCOL
-          </span>
+          
         </h1>
       </div>
 
@@ -130,9 +129,11 @@ export default function HeroText() {
           animationDelay: "1200ms",
         }}
       >
+        <Link href="/dashboard">
         <Button variant="primary-crit">
           Launch Demo →
         </Button>
+        </Link>
 
         <Button variant="secondary">
           View Architecture ↓
