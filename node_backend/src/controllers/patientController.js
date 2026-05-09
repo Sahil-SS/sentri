@@ -1,71 +1,139 @@
-const Patient = require("../models/Patient");
+const Patient = require(
+  "../models/Patient"
+);
 
-const { parseMedicalHistory } = require("../services/geminiService");
+const {
+  parseMedicalHistory,
+} = require(
+  "../services/geminiService"
+);
 
-const { extractTextFromPDF } = require("../services/pdfService");
+const {
+  extractTextFromPDF,
+} = require(
+  "../services/pdfService"
+);
 
-const registerPatient = async (req, res) => {
-  try {
-    const { patient_id, history_text } = req.body;
+// -------------------------
+// REGISTER PATIENT
+// -------------------------
 
-    let finalHistoryText = history_text;
+const registerPatient =
+  async (req, res) => {
 
-    if (req.file) {
-      finalHistoryText = await extractTextFromPDF(req.file.path);
-    }
+    try {
 
-    if (!finalHistoryText) {
-      return res.status(400).json({
-        message: "Medical history is required",
+      const {
+        patient_id,
+        history_text,
+      } = req.body;
+
+      let finalHistoryText =
+        history_text;
+
+      // -------------------------
+      // PDF SUPPORT
+      // -------------------------
+
+      if (req.file) {
+
+        finalHistoryText =
+          await extractTextFromPDF(
+            req.file.path
+          );
+      }
+
+      // -------------------------
+      // VALIDATE INPUT
+      // -------------------------
+
+      if (!finalHistoryText) {
+
+        return res.status(400).json({
+          success: false,
+          message:
+            "Medical history is required",
+        });
+      }
+
+      // -------------------------
+      // PARSE MEDICAL HISTORY
+      // -------------------------
+
+      const parsedHistory =
+        await parseMedicalHistory(
+          finalHistoryText
+        );
+
+      // -------------------------
+      // PARSING FAILED
+      // -------------------------
+
+      if (
+        parsedHistory.success ===
+          false &&
+        parsedHistory.message ===
+          "Data not parsed"
+      ) {
+
+        return res.status(400).json({
+          success: false,
+          message:
+            "Medical history could not be parsed",
+        });
+      }
+
+      // -------------------------
+      // CHECK EXISTING PATIENT
+      // -------------------------
+
+      const existingPatient =
+        await Patient.findOne({
+          patient_id,
+        });
+
+      if (existingPatient) {
+
+        return res.status(400).json({
+          success: false,
+          message:
+            "Patient already exists",
+        });
+      }
+
+      // -------------------------
+      // CREATE PATIENT
+      // -------------------------
+
+      const patient =
+        await Patient.create({
+          patient_id,
+          ...parsedHistory,
+        });
+
+      // -------------------------
+      // RESPONSE
+      // -------------------------
+
+      res.status(201).json({
+        success: true,
+        patient,
+      });
+
+    } catch (error) {
+
+      console.log(error);
+
+      res.status(500).json({
+        success: false,
+        message: error.message,
       });
     }
-
-    //     const parsedHistory =
-    //       await parseMedicalHistory(
-    //         finalHistoryText
-    //       );
-    // MOCKED DATA FOR DEMO PURPOSES BECSUSE LLM IS NOT WORKING 
-    const parsedHistory = {
-      age: 67,
-      age_60_plus: 1,
-      diabetes: 1,
-      smoker: 0,
-      heart_disease: 1,
-      kidney_disease: 0,
-      baseline_sbp: 150,
-      baseline_dbp: 95,
-      baseline_hr: 82,
-      bmi: 32,
-    };
-
-    const existingPatient = await Patient.findOne({
-      patient_id,
-    });
-
-    if (existingPatient) {
-      return res.status(400).json({
-        message: "Patient already exists",
-      });
-    }
-
-    const patient = await Patient.create({
-      patient_id,
-      ...parsedHistory,
-    });
-
-    res.status(201).json({
-      success: true,
-      patient,
-    });
-  } catch (error) {
-    console.log(error);
-
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
 };
+
+// -------------------------
+// GET ALL PATIENTS
+// -------------------------
 
 const getAllPatients =
   async (req, res) => {
@@ -75,7 +143,7 @@ const getAllPatients =
       const patients =
         await Patient.find()
           .select(
-            "patient_id name age"
+            "patient_id age"
           )
           .sort({
             patient_id: 1,
@@ -97,6 +165,10 @@ const getAllPatients =
     }
 };
 
+// -------------------------
+// GET SINGLE PATIENT
+// -------------------------
+
 const getSinglePatient =
   async (req, res) => {
 
@@ -111,7 +183,9 @@ const getSinglePatient =
         });
 
       if (!patient) {
+
         return res.status(404).json({
+          success: false,
           message:
             "Patient not found",
         });
@@ -132,6 +206,7 @@ const getSinglePatient =
       });
     }
 };
+
 module.exports = {
   registerPatient,
   getAllPatients,

@@ -27,7 +27,7 @@ def predict_risk(request):
     )
 
     # --------------------------------------
-    # Ensure correct column order
+    # Ensure exact training order
     # --------------------------------------
 
     features = features[
@@ -35,25 +35,42 @@ def predict_risk(request):
     ]
 
     # --------------------------------------
-    # Predict probability
+    # DEBUG FEATURE VECTOR
+    # --------------------------------------
+
+    print("\nFEATURE VECTOR:")
+    print(features)
+
+    # --------------------------------------
+    # Predict probabilities
+    # --------------------------------------
+
+    probas = model.predict_proba(
+        features
+    )[0]
+
+    print("\nRAW PROBABILITIES:")
+    print(probas)
+
+    # --------------------------------------
+    # IMPORTANT:
+    # Using class 0 probability
+    # as deterioration risk
     # --------------------------------------
 
     probability = (
-
-        model.predict_proba(features)[0][1]
-
-        * 100
+        probas[0] * 100
     )
 
     # --------------------------------------
-    # Severity levels
+    # Severity thresholds
     # --------------------------------------
 
-    if probability < 30:
+    if probability < 35:
 
         severity = "low"
 
-    elif probability < 60:
+    elif probability < 50:
 
         severity = "medium"
 

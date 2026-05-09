@@ -15,3 +15,15 @@ model = joblib.load(
 feature_columns = joblib.load(
     "models/feature_columns.pkl"
 )
+
+# ------------------------------------------
+# DEBUG MODEL INFO
+# ------------------------------------------
+
+print("\nMODEL LOADED")
+
+print("MODEL CLASSES:")
+print(model.classes_)
+
+print("EXPECTED FEATURES:")
+print(feature_columns)

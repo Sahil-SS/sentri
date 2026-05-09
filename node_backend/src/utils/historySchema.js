@@ -1,40 +1,110 @@
 const { z } = require("zod");
 
-const historySchema = z.object({
-  age: z.number().nullable(),
+const historySchema = z
+  .object({
 
-  age_60_plus: z.union([
-    z.literal(0),
-    z.literal(1),
-  ]),
+    // -------------------------
+    // DEMOGRAPHICS
+    // -------------------------
 
-  diabetes: z.union([
-    z.literal(0),
-    z.literal(1),
-  ]),
+    name:
+      z.string().nullable(),
 
-  smoker: z.union([
-    z.literal(0),
-    z.literal(1),
-  ]),
+    gender:
+      z.string().nullable(),
 
-  heart_disease: z.union([
-    z.literal(0),
-    z.literal(1),
-  ]),
+    age:
+      z.number().nullable(),
 
-  kidney_disease: z.union([
-    z.literal(0),
-    z.literal(1),
-  ]),
+    age_60_plus:
+      z.number(),
 
-  baseline_sbp: z.number().nullable(),
+    // -------------------------
+    // COMORBIDITIES
+    // -------------------------
 
-  baseline_dbp: z.number().nullable(),
+    diabetes:
+      z.number(),
 
-  baseline_hr: z.number().nullable(),
+    smoker:
+      z.number(),
 
-  bmi: z.number().nullable(),
-});
+    smoking_years:
+      z.number().nullable(),
 
-module.exports = historySchema;
+    alcohol_use:
+      z.number(),
+
+    heart_disease:
+      z.number(),
+
+    kidney_disease:
+      z.number(),
+
+    hypertension:
+      z.number(),
+
+    obesity:
+      z.number(),
+
+    copd:
+      z.number(),
+
+    asthma:
+      z.number(),
+
+    liver_disease:
+      z.number(),
+
+    stroke_history:
+      z.number(),
+
+    immunocompromised:
+      z.number(),
+
+    prior_sepsis:
+      z.number(),
+
+    prior_icu_admission:
+      z.number(),
+
+    recent_surgery:
+      z.number(),
+
+    // -------------------------
+    // BASELINES
+    // -------------------------
+
+    baseline_sbp:
+      z.number().nullable(),
+
+    baseline_dbp:
+      z.number().nullable(),
+
+    baseline_hr:
+      z.number().nullable(),
+
+    baseline_spo2:
+      z.number().nullable(),
+
+    bmi:
+      z.number().nullable(),
+
+    // -------------------------
+    // LIFESTYLE
+    // -------------------------
+
+    physical_activity:
+      z.string().nullable(),
+
+    // -------------------------
+    // MEDICATIONS
+    // -------------------------
+
+    medications:
+      z.array(z.string()),
+  })
+  .passthrough();
+
+module.exports =
+  historySchema;
