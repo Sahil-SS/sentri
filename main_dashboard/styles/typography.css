@@ -1,0 +1,96 @@
+/* ─────────────────────────────────────── */
+/* TYPOGRAPHY SYSTEM */
+/* ─────────────────────────────────────── */
+
+body {
+  font-family: var(--f-mono);
+  font-size: var(--ts-body);
+  line-height: 1.6;
+}
+
+/* ─────────────────────────────────────── */
+/* HEADINGS */
+/* ─────────────────────────────────────── */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  font-family: var(--f-cond);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--t00);
+}
+
+h1 {
+  font-size: var(--ts-hero-title);
+  line-height: 0.9;
+}
+
+h2 {
+  font-size: var(--ts-section-head);
+}
+
+p {
+  margin: 0;
+  color: var(--t01);
+}
+
+/* ─────────────────────────────────────── */
+/* LABELS */
+/* ─────────────────────────────────────── */
+
+.label {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--t02);
+}
+
+/* ─────────────────────────────────────── */
+/* MONUMENT NUMBERS */
+/* ─────────────────────────────────────── */
+
+.monument-number {
+  font-family: var(--f-mono);
+  font-size: var(--ts-monument);
+  line-height: 0.9;
+  font-weight: 700;
+}
+
+/* ─────────────────────────────────────── */
+/* SECTION NUMBER */
+/* ─────────────────────────────────────── */
+
+.section-number {
+  font-family: var(--f-mono);
+  font-size: var(--ts-section-num);
+  font-weight: 700;
+  color: var(--t03);
+  line-height: 1;
+}
+
+/* ─────────────────────────────────────── */
+/* RESPONSIVE */
+/* ─────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  h1 {
+    line-height: 1;
+  }
+}
+@media (max-width: 768px) {
+  .section-number {
+    top: -20px !important;
+    font-size: 56px;
+  }
+}
