@@ -1,93 +1,81 @@
-const mongoose = require(
-  "mongoose"
-);
+const mongoose = require("mongoose");
 
-const patientSchema =
-  new mongoose.Schema({
+const patientSchema = new mongoose.Schema({
+  patient_id: {
+    type: String,
+    required: true,
+    unique: true,
+  },
 
-    patient_id: {
-      type: String,
-      required: true,
-      unique: true,
-    },
+  name: String,
 
-    name: String,
+  gender: String,
 
-    gender: String,
+  age: Number,
 
-    age: Number,
+  age_60_plus: Number,
 
-    age_60_plus: Number,
+  // -------------------
+  // COMORBIDITIES
+  // -------------------
 
-    // -------------------
-    // COMORBIDITIES
-    // -------------------
+  diabetes: Number,
 
-    diabetes: Number,
+  smoker: Number,
 
-    smoker: Number,
+  smoking_years: Number,
 
-    smoking_years: Number,
+  alcohol_use: Number,
 
-    alcohol_use: Number,
+  heart_disease: Number,
 
-    heart_disease: Number,
+  kidney_disease: Number,
 
-    kidney_disease: Number,
+  hypertension: Number,
 
-    hypertension: Number,
+  obesity: Number,
 
-    obesity: Number,
+  copd: Number,
 
-    copd: Number,
+  asthma: Number,
 
-    asthma: Number,
+  liver_disease: Number,
 
-    liver_disease: Number,
+  stroke_history: Number,
 
-    stroke_history: Number,
+  immunocompromised: Number,
 
-    immunocompromised:
-      Number,
+  prior_sepsis: Number,
 
-    prior_sepsis: Number,
+  prior_icu_admission: Number,
 
-    prior_icu_admission:
-      Number,
+  recent_surgery: Number,
 
-    recent_surgery:
-      Number,
+  // -------------------
+  // BASELINES
+  // -------------------
 
-    // -------------------
-    // BASELINES
-    // -------------------
+  baseline_hr: Number,
 
-    baseline_hr: Number,
+  baseline_sbp: Number,
 
-    baseline_sbp: Number,
+  baseline_dbp: Number,
 
-    baseline_dbp: Number,
+  baseline_spo2: Number,
 
-    baseline_spo2: Number,
+  bmi: Number,
 
-    bmi: Number,
+  // -------------------
+  // LIFESTYLE
+  // -------------------
 
-    // -------------------
-    // LIFESTYLE
-    // -------------------
+  physical_activity: String,
 
-    physical_activity:
-      String,
+  // -------------------
+  // MEDICATIONS
+  // -------------------
 
-    // -------------------
-    // MEDICATIONS
-    // -------------------
-
-    medications: [String],
+  medications: [String],
 });
 
-module.exports =
-  mongoose.model(
-    "Patient",
-    patientSchema
-  );
+module.exports = mongoose.model("Patient", patientSchema);

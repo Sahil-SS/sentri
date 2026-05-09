@@ -1,15 +1,14 @@
 const mongoose = require("mongoose");
 
 const vitalsSchema = new mongoose.Schema({
-
   patient_id: {
     type: String,
-    required: true
+    required: true,
   },
 
   timestamp: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
 
   // -----------------------------------
@@ -26,11 +25,7 @@ const vitalsSchema = new mongoose.Schema({
 
   systolic_bp: Number,
 
-  mean_arterial_pressure: Number
-
+  mean_arterial_pressure: Number,
 });
 
-module.exports = mongoose.model(
-  "Vitals",
-  vitalsSchema
-);
+module.exports = mongoose.model("Vitals", vitalsSchema);
