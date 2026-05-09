@@ -553,3 +553,15 @@ Completed:
 - historical analytics APIs
 
 ---
+
+# Planned Improvements
+
+Upcoming:
+- Socket.IO real-time streaming
+- JWT authentication
+- SHAP explainability
+- WebSocket dashboards
+- live ICU graphs
+- Docker deployment
+- Kubernetes scaling
+- multi-patient ICU monitoring
