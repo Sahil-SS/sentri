@@ -1,65 +1,49 @@
-import { useEffect, useRef } from "react";
-import { loadCSVData } from "@/lib/dataLoader";
-import { sendVitals } from "@/lib/api";
-import { useVitals } from "@/context/VitalsContext";
+'use client';
 
-export default function useVitalsSimulator() {
+import { useEffect, useRef } from 'react';
+import { useVitals } from '@/context/VitalsContext';
+import { postVitals } from '@/lib/api';
+
+export function useVitalsSimulator(patientRows) {
   const {
-    selectedPatient,
     setCurrentVitals,
-    setAllPatients,
+    setBackendStatus,
+    setLastSentMs,
+    setRowCursor,
+    setTotalRows,
+    selectedPatient,
   } = useVitals();
 
-  const datasetRef = useRef([]);
-  const indexRef = useRef(0);
+  const cursorRef = useRef(0);
 
   useEffect(() => {
-    const init = async () => {
-      const data = await loadCSVData();
+    cursorRef.current = 0;
+  }, [selectedPatient]);
 
-      datasetRef.current = data;
+  useEffect(() => {
+    if (!patientRows || patientRows.length === 0) return;
 
-      const uniquePatients = [
-        ...new Set(data.map((row) => row.patient_id)),
-      ];
+    setTotalRows(patientRows.length);
 
-      setAllPatients(uniquePatients);
+    const tick = async () => {
+      const idx = cursorRef.current % patientRows.length;
+      const row = patientRows[idx];
+      setCurrentVitals(row);
+      setRowCursor(idx);
+      cursorRef.current += 1;
+
+      const result = await postVitals(row);
+      if (result.ok) {
+        setBackendStatus('ok');
+        setLastSentMs(Date.now());
+      } else {
+        setBackendStatus('offline');
+        setLastSentMs(Date.now());
+      }
     };
 
-    init();
-  }, []);
-
-  useEffect(() => {
-    if (!selectedPatient) return;
-
-    const patientRows = datasetRef.current.filter(
-      (row) => row.patient_id === selectedPatient
-    );
-
-    indexRef.current = 0;
-
-    const interval = setInterval(async () => {
-      if (indexRef.current >= patientRows.length) {
-        indexRef.current = 0;
-      }
-
-      const row = patientRows[indexRef.current];
-
-      const vitalsPayload = {
-        patient_id: row.patient_id,
-        timestamp: new Date().toISOString(),
-        heart_rate: row.heart_rate,
-        spo2: row.spo2,
-        temperature: row.temperature,
-      };
-
-      setCurrentVitals(vitalsPayload);
-
-      await sendVitals(vitalsPayload);
-
-      indexRef.current++;
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [selectedPatient]);
+    tick();
+    const id = setInterval(tick, 3000); // 3 seconds between data updates
+    return () => clearInterval(id);
+  }, [patientRows]);
 }

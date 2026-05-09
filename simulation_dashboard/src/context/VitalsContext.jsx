@@ -1,28 +1,33 @@
-import { createContext, useContext, useState } from "react";
+'use client';
 
-const VitalsContext = createContext();
+import { createContext, useContext, useState } from 'react';
 
-export const VitalsProvider = ({ children }) => {
-  const [selectedPatient, setSelectedPatient] = useState(null);
+const VitalsContext = createContext(null);
 
+export function VitalsProvider({ children }) {
   const [currentVitals, setCurrentVitals] = useState(null);
-
-  const [allPatients, setAllPatients] = useState([]);
+  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [backendStatus, setBackendStatus] = useState('connecting'); // 'ok' | 'offline' | 'connecting'
+  const [lastSentMs, setLastSentMs] = useState(null);
+  const [rowCursor, setRowCursor] = useState(0);
+  const [totalRows, setTotalRows] = useState(0);
 
   return (
-    <VitalsContext.Provider
-      value={{
-        selectedPatient,
-        setSelectedPatient,
-        currentVitals,
-        setCurrentVitals,
-        allPatients,
-        setAllPatients,
-      }}
-    >
+    <VitalsContext.Provider value={{
+      currentVitals, setCurrentVitals,
+      selectedPatient, setSelectedPatient,
+      backendStatus, setBackendStatus,
+      lastSentMs, setLastSentMs,
+      rowCursor, setRowCursor,
+      totalRows, setTotalRows,
+    }}>
       {children}
     </VitalsContext.Provider>
   );
-};
+}
 
-export const useVitals = () => useContext(VitalsContext);
+export function useVitals() {
+  const ctx = useContext(VitalsContext);
+  if (!ctx) throw new Error('useVitals must be used inside VitalsProvider');
+  return ctx;
+}
