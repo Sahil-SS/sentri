@@ -92,3 +92,69 @@
 .reveal.active {
   animation: section-reveal 800ms var(--ease-out) forwards;
 }
+/* ─────────────────────────────────────── */
+/* ECG DRAW */
+/* ─────────────────────────────────────── */
+
+@keyframes ecg-draw {
+  from {
+    stroke-dashoffset: 1000;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ─────────────────────────────────────── */
+/* SCAN LINE */
+/* ─────────────────────────────────────── */
+
+@keyframes scan-line {
+  0% {
+    transform: translateY(-100%);
+  }
+
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+/* ─────────────────────────────────────── */
+/* THREAT ARC */
+/* ─────────────────────────────────────── */
+
+@keyframes risk-arc-fill {
+  from {
+    stroke-dashoffset: 440;
+  }
+
+  to {
+    stroke-dashoffset: 100;
+  }
+}
+
+/* ─────────────────────────────────────── */
+/* HERO ENTRANCE */
+/* ─────────────────────────────────────── */
+
+@keyframes hero-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-reveal {
+  opacity: 0;
+  animation:
+    hero-fade-up
+    900ms
+    var(--ease-out)
+    forwards;
+}
