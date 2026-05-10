@@ -1,8 +1,11 @@
+import Image from "next/image";
+
 type Props = {
   index: string;
   name: string;
   role: string;
   specialty: string;
+  image: string;
 };
 
 export default function TeamCard({
@@ -10,6 +13,7 @@ export default function TeamCard({
   name,
   role,
   specialty,
+  image,
 }: Props) {
   return (
     <div
@@ -29,70 +33,50 @@ export default function TeamCard({
         }}
       />
 
-      {/* image placeholder */}
-      <div
-        style={{
-          aspectRatio: "4 / 5",
-          borderBottom: "1px solid var(--l01)",
-          background:
-            "linear-gradient(180deg, rgba(243,241,234,0.03), rgba(243,241,234,0.01))",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          position: "relative",
-        }}
-      >
-        {/* placeholder grid */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            backgroundImage:
-              "linear-gradient(rgba(243,241,234,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(243,241,234,0.03) 1px, transparent 1px)",
-            backgroundSize: "32px 32px",
-          }}
-        />
+      {/* image */}
+<div
+  style={{
+    aspectRatio: "4 / 5",
+    borderBottom: "1px solid var(--l01)",
+    position: "relative",
+    overflow: "hidden",
+  }}
+>
+  <Image
+    src={image}
+    alt={name}
+    fill
+    style={{
+      objectFit: "cover",
+    }}
+  />
 
-        {/* placeholder mark */}
-        <div
-          style={{
-            width: 72,
-            height: 72,
-            border: "1px solid var(--l01)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 2,
-          }}
-        >
-          <span
-            style={{
-              fontFamily: "var(--f-mono)",
-              fontSize: 11,
-              color: "var(--t03)",
-              letterSpacing: "0.18em",
-            }}
-          >
-            IMG
-          </span>
-        </div>
+  {/* dark overlay */}
+  <div
+    style={{
+      position: "absolute",
+      inset: 0,
+      background:
+        "linear-gradient(to top, rgba(0,0,0,0.45), rgba(0,0,0,0.08))",
+    }}
+  />
 
-        {/* index */}
-        <div
-          style={{
-            position: "absolute",
-            top: 16,
-            left: 16,
-            fontFamily: "var(--f-mono)",
-            fontSize: 10,
-            color: "var(--t03)",
-            letterSpacing: "0.12em",
-          }}
-        >
-          {index}
-        </div>
-      </div>
-
+  {/* index */}
+  <div
+    style={{
+      position: "absolute",
+      top: 16,
+      left: 16,
+      fontFamily: "var(--f-mono)",
+      fontSize: 10,
+      color: "var(--t03)",
+      letterSpacing: "0.12em",
+      zIndex: 2,
+    }}
+  >
+    {index}
+  </div>
+</div>
       {/* content */}
       <div
         style={{
