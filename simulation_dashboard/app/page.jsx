@@ -14,7 +14,8 @@ const SCENARIOS = [
 ];
 
 function ScenarioSelector() {
-  const { scenario, setScenario } = useVitals();
+  const { scenario, queueScenario, scenarioQueue } = useVitals();
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
       <span
@@ -28,10 +29,11 @@ function ScenarioSelector() {
       >
         Scenario
       </span>
+
       <div style={{ position: "relative" }}>
         <select
           value={scenario}
-          onChange={(e) => setScenario(e.target.value)}
+          onChange={(e) => queueScenario(e.target.value)}
           style={{
             background: "#000",
             border: "1px solid #1a2332",
@@ -56,6 +58,7 @@ function ScenarioSelector() {
             </option>
           ))}
         </select>
+
         <span
           style={{
             position: "absolute",
@@ -70,6 +73,45 @@ function ScenarioSelector() {
           ▼
         </span>
       </div>
+
+      {/* Active queued scenarios */}
+      {scenarioQueue.length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            gap: 6,
+            marginTop: 6,
+            flexWrap: "wrap",
+          }}
+        >
+          {scenarioQueue.map((s, i) => {
+            const c =
+              s.type === "septic"
+                ? "#ff3333"
+                : s.type === "moderate"
+                  ? "#ffaa00"
+                  : "#00ff7f";
+
+            return (
+              <div
+                key={i}
+                style={{
+                  border: `1px solid ${c}`,
+                  color: c,
+                  background: c + "15",
+                  padding: "2px 6px",
+                  borderRadius: 2,
+                  fontSize: "0.55rem",
+                  fontFamily: "Share Tech Mono, monospace",
+                  letterSpacing: "0.08em",
+                }}
+              >
+                {s.type.toUpperCase()} · {s.stepsRemaining}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -77,7 +119,9 @@ function ScenarioSelector() {
 // ── Reading progress dots ─────────────────────────────────────────────────────
 function ReadingDots() {
   const { vitalsSentCount } = useVitals();
+
   const count = Math.min(vitalsSentCount, 6);
+
   const triggered = vitalsSentCount >= 6;
 
   return (
@@ -99,6 +143,7 @@ function ReadingDots() {
       >
         {triggered ? "AI ACTIVE" : `${count} / 6 TO TRIGGER AI`}
       </span>
+
       <div style={{ display: "flex", gap: 5 }}>
         {Array.from({ length: 6 }, (_, i) => (
           <div
@@ -107,7 +152,9 @@ function ReadingDots() {
               width: 10,
               height: 10,
               borderRadius: "50%",
-              border: `1px solid ${i < count ? (triggered ? "#00ff7f" : "#00e5ff") : "#1a2332"}`,
+              border: `1px solid ${
+                i < count ? (triggered ? "#00ff7f" : "#00e5ff") : "#1a2332"
+              }`,
               background:
                 i < count ? (triggered ? "#00ff7f" : "#00e5ff") : "transparent",
               boxShadow: i < count && triggered ? "0 0 6px #00ff7f" : "none",
@@ -133,8 +180,10 @@ function RiskPanel() {
         : "#00ff7f";
 
   const score = latestPrediction?.risk_score;
+
   const exps =
     latestPrediction?.explanation ?? latestPrediction?.explanations ?? [];
+
   const activeAlerts = alerts.filter((a) => !a.acknowledged);
 
   return (
@@ -231,10 +280,23 @@ function RiskPanel() {
             fontSize: "0.55rem",
           }}
         >
-          <span style={{ position: "absolute", left: "35%", color: "#ffaa00" }}>
+          <span
+            style={{
+              position: "absolute",
+              left: "35%",
+              color: "#ffaa00",
+            }}
+          >
             ▲35
           </span>
-          <span style={{ position: "absolute", left: "50%", color: "#ff3333" }}>
+
+          <span
+            style={{
+              position: "absolute",
+              left: "50%",
+              color: "#ff3333",
+            }}
+          >
             ▲50
           </span>
         </div>
@@ -285,6 +347,7 @@ function RiskPanel() {
         >
           CLINICAL SIGNALS
         </div>
+
         {exps.length > 0 ? (
           exps.map((e, i) => (
             <div
@@ -310,6 +373,7 @@ function RiskPanel() {
                   marginTop: 6,
                 }}
               />
+
               {e}
             </div>
           ))
@@ -388,6 +452,7 @@ function RiskPanel() {
                 : alert.severity === "moderate"
                   ? "#ffaa00"
                   : "#00ff7f";
+
             return (
               <div
                 key={alert._id}
@@ -421,6 +486,7 @@ function RiskPanel() {
                   >
                     {alert.severity.toUpperCase()}
                   </span>
+
                   <span
                     style={{
                       fontFamily: "Share Tech Mono, monospace",
@@ -431,6 +497,7 @@ function RiskPanel() {
                     {new Date(alert.timestamp).toLocaleTimeString()}
                   </span>
                 </div>
+
                 <div
                   style={{
                     fontFamily: "DM Sans, sans-serif",
@@ -442,6 +509,7 @@ function RiskPanel() {
                 >
                   {alert.message}
                 </div>
+
                 <button
                   onClick={() => acknowledgeAlert(alert._id)}
                   style={{
@@ -467,7 +535,7 @@ function RiskPanel() {
   );
 }
 
-// ── Top control strip (inside page, below header) ─────────────────────────────
+// ── Top control strip ─────────────────────────────────────────────────────────
 function ControlStrip() {
   return (
     <div
@@ -481,10 +549,17 @@ function ControlStrip() {
         flexShrink: 0,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 24,
+        }}
+      >
         <PatientSelector />
         <ScenarioSelector />
       </div>
+
       <ReadingDots />
     </div>
   );
@@ -503,18 +578,30 @@ export default function Page() {
       }}
     >
       <Header />
+
       <ControlStrip />
 
-      {/* Body: monitor left, AI panel right */}
+      {/* Body */}
       <div
-        style={{ display: "flex", flex: 1, overflow: "hidden", minHeight: 0 }}
+        style={{
+          display: "flex",
+          flex: 1,
+          overflow: "hidden",
+          minHeight: 0,
+        }}
       >
-        {/* LEFT: waveforms + numeric vitals */}
-        <div style={{ flex: 1, overflowY: "auto", minWidth: 0 }}>
+        {/* LEFT */}
+        <div
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            minWidth: 0,
+          }}
+        >
           <VitalsMonitor />
         </div>
 
-        {/* RIGHT: risk + alerts */}
+        {/* RIGHT */}
         <div
           style={{
             width: 280,
