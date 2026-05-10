@@ -1046,3 +1046,5 @@ Sentri combines:
 - escalation orchestration
 - dashboard visualization
 
+
+to build a realistic ICU deterioration monitoring and escalation platform capable of simulating autonomous hospital intelligence workflows.
