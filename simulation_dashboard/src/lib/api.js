@@ -9,7 +9,7 @@
  *   NEXT_PUBLIC_API_URL=https://your-node-backend.railway.app
  */
 
-const BASE = "https://loyal-magic-production-0fce.up.railway.app/";
+const BASE = "https://loyal-magic-production-0fce.up.railway.app";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
