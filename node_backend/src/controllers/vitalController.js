@@ -93,23 +93,31 @@ const addVitals = async (req, res) => {
     // STORE PREDICTION
     // -------------------------
 
-    const prediction = await Prediction.create({
-      patient_id,
+    let severity = "low";
 
-      timestamp: new Date(),
+if (predictionResponse.risk_score >= 90) {
+  severity = "high";
+} else if (predictionResponse.risk_score >= 60) {
+  severity = "moderate";
+}
 
-      risk_score: predictionResponse.risk_score,
+const prediction = await Prediction.create({
+  patient_id,
 
-      severity: predictionResponse.severity,
+  timestamp: new Date(),
 
-      explanation: predictionResponse.explanations,
-    });
+  risk_score: predictionResponse.risk_score,
+
+  severity,
+
+  explanation: predictionResponse.explanations,
+});
 
     // -------------------------
     // CREATE ALERTS
     // -------------------------
 
-    if (predictionResponse.risk_score >= 60) {
+    if (predictionResponse.risk_score >= 90) {
       // -------------------------
       // CREATE ALERT
       // -------------------------
@@ -134,7 +142,7 @@ const addVitals = async (req, res) => {
 
           risk_score: predictionResponse.risk_score,
 
-          severity: predictionResponse.severity,
+          severity,
 
           is_acknowledged: false,
 
