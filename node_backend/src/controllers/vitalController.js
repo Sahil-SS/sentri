@@ -95,23 +95,23 @@ const addVitals = async (req, res) => {
 
     let severity = "low";
 
-if (predictionResponse.risk_score >= 90) {
-  severity = "high";
-} else if (predictionResponse.risk_score >= 60) {
-  severity = "moderate";
-}
+    if (predictionResponse.risk_score >= 90) {
+      severity = "high";
+    } else if (predictionResponse.risk_score >= 50) {
+      severity = "moderate";
+    }
 
-const prediction = await Prediction.create({
-  patient_id,
+    const prediction = await Prediction.create({
+      patient_id,
 
-  timestamp: new Date(),
+      timestamp: new Date(),
 
-  risk_score: predictionResponse.risk_score,
+      risk_score: predictionResponse.risk_score,
 
-  severity,
+      severity,
 
-  explanation: predictionResponse.explanations,
-});
+      explanation: predictionResponse.explanations,
+    });
 
     // -------------------------
     // CREATE ALERTS

@@ -69,7 +69,7 @@ export default function StatusBar() {
       {/* Left: TX status */}
       <div className="flex items-center gap-2">
         <div
-          className="w-1.5 h-1.5 rounded-full flex-shrink-0 transition-all duration-300"
+          className="w-1.5 h-1.5 rounded-full shrink-0 transition-all duration-300"
           style={{
             background: dotColor,
             boxShadow: txPulse ? `0 0 8px ${dotColor}` : "none",

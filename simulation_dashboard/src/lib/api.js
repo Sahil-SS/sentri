@@ -9,9 +9,7 @@
  *   NEXT_PUBLIC_API_URL=https://your-node-backend.railway.app
  */
 
-const BASE =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:5000";
+const BASE = "https://loyal-magic-production-0fce.up.railway.app/";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -65,8 +63,7 @@ export const getPatient = (patientId) => get(`/api/patients/${patientId}`);
  *   { patient, latestVitals, latestPrediction,
  *     activeAlerts, historicalVitals, historicalPredictions }
  */
-export const getDashboard = (patientId) =>
-  get(`/api/dashboard/${patientId}`);
+export const getDashboard = (patientId) => get(`/api/dashboard/${patientId}`);
 
 // ─── vitals ───────────────────────────────────────────────────────────────────
 
