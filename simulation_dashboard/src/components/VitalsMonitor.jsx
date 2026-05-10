@@ -76,7 +76,7 @@ export default function VitalsMonitor() {
         const v = vitalsRef.current;
         const hr = v?.heart_rate || 75;
         const sp = v?.spo2 || 97;
-        const rr = v?.resp_rate || 16;
+        const rr = v?.respiratory_rate || 16;
         const t = tRef.current++;
 
         ecgBuf.current.copyWithin(0, 1);
@@ -96,8 +96,13 @@ export default function VitalsMonitor() {
   const hr = v?.heart_rate != null ? Math.round(v.heart_rate) : null;
   const sp = v?.spo2 != null ? Math.round(v.spo2) : null;
   const tmp = v?.temperature != null ? Number(v.temperature).toFixed(1) : null;
-  const rr = v?.resp_rate != null ? Math.round(v.resp_rate) : null;
-  const map = v?.map != null ? Math.round(v.map) : null;
+  const rr =
+    v?.respiratory_rate != null ? Math.round(v.respiratory_rate) : null;
+
+  const map =
+    v?.mean_arterial_pressure != null
+      ? Math.round(v.mean_arterial_pressure)
+      : null;
 
   return (
     <div style={{ padding: "16px", background: "#e8e8e8" }}>

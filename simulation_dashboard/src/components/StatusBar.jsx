@@ -48,12 +48,12 @@ export default function StatusBar() {
         : "Connecting…";
 
   // AI prediction badge
-  const predColor =
-    latestPrediction?.severity === "high"
-      ? "#ff3333"
-      : latestPrediction?.severity === "medium"
-        ? "#ffaa00"
-        : "#00ff7f";
+const predColor =
+  latestPrediction?.severity === "high"
+    ? "#ff3333"
+    : latestPrediction?.severity === "moderate"
+      ? "#ffaa00"
+      : "#00ff7f";
 
   const vitalsNeeded = Math.max(0, 6 - (vitalsSentCount || 0));
 

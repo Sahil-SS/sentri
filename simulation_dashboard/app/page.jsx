@@ -128,7 +128,7 @@ function RiskPanel() {
   const sevColor =
     latestPrediction?.severity === "high"
       ? "#ff3333"
-      : latestPrediction?.severity === "medium"
+      : latestPrediction?.severity === "moderate"
         ? "#ffaa00"
         : "#00ff7f";
 
@@ -385,7 +385,7 @@ function RiskPanel() {
             const ac =
               alert.severity === "high"
                 ? "#ff3333"
-                : alert.severity === "medium"
+                : alert.severity === "moderate"
                   ? "#ffaa00"
                   : "#00ff7f";
             return (
