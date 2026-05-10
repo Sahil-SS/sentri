@@ -26,7 +26,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body style={{ margin: 0, background: "#000", overflow: "hidden" }}>
+      <body suppressHydrationWarning style={{ margin: 0, background: "#000", overflow: "hidden" }}>
         <VitalsProvider>{children}</VitalsProvider>
       </body>
     </html>
