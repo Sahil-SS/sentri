@@ -16,10 +16,7 @@ export default function HeroText() {
           hero-reveal
         "
       >
-        <p className="label">
-          SP-1 · SENTRI · ICU COMMAND
-          INTELLIGENCE
-        </p>
+        <p className="label">SP-1 · SENTRI · ICU COMMAND INTELLIGENCE</p>
 
         <AmberCursor />
       </div>
@@ -36,8 +33,6 @@ export default function HeroText() {
         <h1 className="mb-8">
           SENTRI
           <br />
-
-          
         </h1>
       </div>
 
@@ -82,7 +77,7 @@ export default function HeroText() {
             flex
             flex-col
             gap-4
-            max-w-[620px]
+            max-w-155
           "
         >
           {[
@@ -98,14 +93,12 @@ export default function HeroText() {
                 gap-3
               "
             >
-              <span className="text-[var(--amber)]">
-                ▶
-              </span>
+              <span className="text-(--amber)">▶</span>
 
               <p
                 className="
                   text-[14px]
-                  text-[var(--t01)]
+                  text-(--t01)
                   leading-[1.8]
                 "
               >
@@ -130,14 +123,12 @@ export default function HeroText() {
         }}
       >
         <Link href="/dashboard">
-        <Button variant="primary-crit">
-          Launch Demo →
-        </Button>
+          <Button variant="primary-crit">Launch Demo →</Button>
         </Link>
 
-        <Button variant="secondary">
-          View Architecture ↓
-        </Button>
+        <Link href="https://sentri-simu.vercel.app/">
+          <Button variant="primary-crit">Simulation Dashboard →</Button>
+        </Link>
       </div>
     </div>
   );
