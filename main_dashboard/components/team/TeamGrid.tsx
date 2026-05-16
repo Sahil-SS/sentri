@@ -6,7 +6,7 @@ const TEAM = [
     name: "SAHIL SINHA",
     role: "ML ENGINEERING",
     specialty:
-      "Predictive modeling · XGBoost · SHAP explainability · inference systems",
+      "End-to-end model training · Node.js backend · XGBoost pipeline architecture · FastAPI inference backend· Full orchestration of the ML prediction workflow",
     image: "/team/member1.jpeg",
   },
 
@@ -15,7 +15,7 @@ const TEAM = [
     name: "SNEHA KUMARI",
     role: "FULL STACK",
     specialty:
-      "Next.js · dashboard systems · operational UX · frontend architecture",
+      "Frontend Architecture · Simulation dashboard frontend · Operational UX design · Component architecture",
     image: "/team/member2.jpeg",
   },
 
@@ -24,16 +24,16 @@ const TEAM = [
     name: "ATHARV VERMA",
     role: "BACKEND SYSTEMS",
     specialty:
-      "FastAPI · orchestration · realtime telemetry · infrastructure",
+      "Node.js backend · System Integration · MongoDB architecture · REST API development · Simulation dashboard integration · Deployment · Documentation ",
     image: "/team/member3.jpeg",
   },
 
   {
     index: "04",
     name: "TANAY GUJARATHI",
-    role: "RESEARCH & DATA",
+    role: "UI DESIGN AND FRONTEND ARCHITECTURE",
     specialty:
-      "Clinical workflows · ICU systems · datasets · operational validation",
+      "End-to-end frontend development · Clinical UI/UX design · Main monitoring interface · Domain Research for Medical Credibility",
     image: "/team/member4.jpeg",
   },
 ];
