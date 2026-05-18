@@ -265,7 +265,6 @@ const CSS = `
     letter-spacing: -0.02em;
   }
 
-  /* ACK button — larger, prominent, pulsing ring to draw the nurse's eye */
   .emergency-ack-btn {
     height: 34px;
     padding: 0 20px;
@@ -300,7 +299,7 @@ const CSS = `
     position: relative;
   }
   .vigil-shell.emergency-active {
-    padding-top: 48px; /* matches banner height */
+    padding-top: 48px;
   }
 
   .vigil-bg-grid {
@@ -678,6 +677,235 @@ const CSS = `
   .awaiting-vitals { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; color: var(--t03); padding: 48px; text-align: center; }
   .awaiting-vitals-title { font-family: var(--f-cond); font-size: 16px; letter-spacing: 0.20em; text-transform: uppercase; color: var(--amber); }
   .awaiting-vitals-sub { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.12em; color: var(--t03); line-height: 1.8; }
+
+  /* ── RAIL MOBILE TOGGLE — hidden on desktop ── */
+  .rail-mobile-toggle {
+    display: none;
+  }
+
+  /* ══════════════════════════════════════════════
+     MOBILE RESPONSIVE — ≤768px
+  ══════════════════════════════════════════════ */
+  @media (max-width: 768px) {
+
+    /* ── TOPBAR ── */
+    .topbar { padding: 0 14px; }
+    .topbar-mid { display: none; }
+    .topbar-right { gap: 10px; }
+    .tb-label { font-size: 9px; letter-spacing: 0.10em; }
+    .tb-vigil { font-size: 16px; }
+    .tb-div   { display: none; }
+
+    /* ── EMERGENCY BANNER ── */
+    .emergency-banner {
+      top: 52px;
+      height: auto;
+      min-height: 48px;
+      padding: 10px 14px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .emergency-banner-left { flex-wrap: wrap; gap: 8px; }
+    .emergency-banner-message { width: 100%; white-space: normal; }
+    .emergency-banner-score { font-size: 22px; }
+    .emergency-ack-btn { height: 30px; padding: 0 14px; font-size: 12px; }
+
+    /* ── INTAKE BAR ── */
+    .intake-bar-collapsed { padding: 0 14px; }
+    .intake-toggle-hint { display: none; }
+    .intake-form-wrap {
+      flex-direction: column;
+      gap: 14px;
+      padding: 16px 14px 18px;
+    }
+    .intake-divider { width: 100%; height: 1px; align-self: auto; margin: 0; }
+    .intake-text-input { width: 100%; }
+    .intake-field-group { width: 100%; }
+    .intake-history-group { width: 100%; }
+    .intake-submit-group { width: 100%; }
+    .intake-submit-btn { width: 100%; }
+
+    /* ── RAIL TOGGLE BUTTON ── */
+    .rail-mobile-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 40px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--l01);
+      background: var(--s01);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .rail-mobile-toggle-label {
+      font-family: var(--f-cond);
+      font-size: 12px;
+      color: var(--t02);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-weight: 600;
+      flex: 1;
+    }
+    .rail-mobile-toggle-count {
+      font-family: var(--f-mono);
+      font-size: 11px;
+      color: var(--amber);
+      letter-spacing: 0.12em;
+    }
+    .rail-mobile-toggle-arrow {
+      font-family: var(--f-mono);
+      font-size: 12px;
+      color: var(--t03);
+      transition: transform 200ms;
+    }
+    .rail-mobile-toggle-arrow.open { transform: rotate(180deg); }
+
+    /* ── BODY LAYOUT ── */
+    .vigil-body { flex-direction: column; }
+
+    /* ── RAIL — collapsed by default, toggled open ── */
+    .rail {
+      width: 100%;
+      height: auto;
+      max-height: 0;
+      overflow: hidden;
+      position: static;
+      border-right: none;
+      border-bottom: 1px solid var(--l01);
+      transition: max-height 300ms cubic-bezier(0,0,0.2,1);
+    }
+    .rail.rail-open {
+      max-height: 280px;
+      overflow-y: hidden;
+    }
+    .rail-header { padding: 0 14px; height: 44px; }
+    .rail-patients {
+      flex: none;
+      display: flex;
+      flex-direction: row;
+      overflow-x: auto;
+      overflow-y: hidden;
+      height: 236px;
+    }
+    .patient-row {
+      min-width: 150px;
+      max-width: 180px;
+      border-bottom: none;
+      border-left: none;
+      border-top: 3px solid transparent;
+      flex-shrink: 0;
+    }
+    .patient-row.critical {
+      border-top-color: var(--crimson);
+      border-left-color: transparent;
+      animation: row-enter 300ms ease both, crit-pulse 2400ms linear infinite;
+    }
+    .patient-row.elevated {
+      border-top-color: var(--amber);
+      border-left-color: transparent;
+    }
+    .pr-score { font-size: 28px; }
+    .pr-name  { font-size: 16px; }
+
+    /* ── WORKSPACE ── */
+    .workspace { min-width: 0; }
+
+    /* ── STATUS BAND ── */
+    .status-band {
+      height: auto;
+      min-height: 48px;
+      padding: 8px 14px;
+      flex-wrap: wrap;
+      gap: 4px;
+      position: static;
+    }
+    .sb-meta { flex-wrap: wrap; gap: 4px; overflow: visible; }
+    .sb-sep  { display: none; }
+    .sb-score { font-size: 32px; }
+    .sb-sev   { font-size: 10px; }
+    .sb-item  { font-size: 11px; }
+
+    /* ── ALERT STRIP ── */
+    .alert-strip { padding: 0 14px; height: auto; min-height: 38px; padding-block: 8px; }
+
+    /* ── VIEW TABS ── */
+    .view-tab { padding: 0 12px; font-size: 11px; letter-spacing: 0.10em; }
+
+    /* ── SECTION PADDING ── */
+    .section { padding: 12px 12px 0; }
+    .section:last-child { padding-bottom: 18px; }
+
+    /* ── GRIDS ── */
+    .two-col   { grid-template-columns: 1fr !important; gap: 12px; }
+    .three-col { grid-template-columns: 1fr !important; gap: 12px; }
+
+    /* ── STATS STRIP ── */
+    .stats-strip { grid-template-columns: repeat(3, 1fr) !important; }
+    .stat-cell { padding: 10px 12px; }
+    .stat-val  { font-size: 16px; }
+    .stat-lbl  { font-size: 9px; }
+
+    /* ── TEMPORAL TABLE ── */
+    .tbl-head-row { grid-template-columns: 50px 76px 66px 66px; padding: 8px 12px; }
+    .tbl-row      { grid-template-columns: 50px 76px 66px 66px; padding: 10px 12px; }
+    .tbl-param    { font-size: 11px; }
+    .tbl-val      { font-size: 11px; }
+
+    /* ── HISTORY GRID ── */
+    .hist-grid { grid-template-columns: 1fr 1fr !important; }
+    .hist-cell:nth-child(3n)        { border-right: 1px solid var(--l00); }
+    .hist-cell:nth-child(2n)        { border-right: none; }
+    .hist-cell:nth-last-child(-n+2) { border-bottom: none; }
+    .hist-cell:nth-last-child(3)    { border-bottom: 1px solid var(--l00); }
+    .hist-cell { padding: 12px 14px; }
+
+    /* ── PANEL HEADER ── */
+    .panel-hd { padding: 0 14px; height: auto; min-height: 44px; flex-wrap: wrap; gap: 8px; padding-block: 10px; }
+    .panel-title { font-size: 11px; }
+    .legend   { flex-wrap: wrap; gap: 8px; }
+
+    /* ── MAIN CHART HEIGHT ── */
+    .main-chart-height { height: 220px !important; }
+
+    /* ── ARC ── */
+    .arc-score { font-size: 56px !important; }
+    .arc-wrap  { padding: 18px 14px 14px; }
+
+    /* ── INFERENCE ── */
+    .inf-wrap  { padding: 16px 14px; }
+    .inf-name  { width: 80px; font-size: 11px; }
+    .inf-fkey  { min-width: 110px; font-size: 10px; }
+    .inf-fval  { font-size: 10px; }
+
+    /* ── VITAL STREAM ── */
+    .vs-hd  { padding: 10px 14px 8px; }
+    .vs-val { font-size: 20px; }
+    .vs-chart { height: 60px; padding: 4px 10px; }
+    .vs-times { padding: 2px 14px 4px; }
+
+    /* ── TIMELINE ── */
+    .timeline { height: 64px; padding: 0 14px; }
+
+    /* ── BOTTOM BAR ── */
+    .bottombar { padding: 0 14px; }
+    .bb-keys   { gap: 8px; overflow: hidden; }
+    .bb-key    { font-size: 9px; letter-spacing: 0.06em; }
+    .bb-sep    { display: none; }
+    .bb-right  { gap: 6px; }
+    .bb-live   { font-size: 9px; }
+  }
+
+  @media (max-width: 480px) {
+    .stats-strip { grid-template-columns: repeat(2, 1fr) !important; }
+    .tbl-head-row { grid-template-columns: 42px 64px 56px 56px; padding: 8px 10px; }
+    .tbl-row      { grid-template-columns: 42px 64px 56px 56px; padding: 9px 10px; }
+    .bb-keys { display: none; }
+    .arc-score { font-size: 44px !important; }
+    .view-tab { padding: 0 10px; font-size: 10px; }
+    .topbar-right .tb-crit { display: none; }
+    .tb-amber { display: none; }
+    .pr-score { font-size: 24px; }
+  }
 `;
 
 /* ═══════════════════════════════════════════════════════════════
@@ -830,7 +1058,6 @@ function EmergencyOverlay({
   if (!active) return null;
   return (
     <>
-      {/* Full-viewport pulsing border + vignette + scan line — pointer-events:none */}
       <div className="emergency-overlay">
         <div className="emergency-scan-line" />
         <div className="emergency-vignette" />
@@ -839,8 +1066,6 @@ function EmergencyOverlay({
         <div className="emergency-corner emergency-corner--bl" />
         <div className="emergency-corner emergency-corner--br" />
       </div>
-
-      {/* Banner — pointer-events:all so ACK button works */}
       <div className="emergency-banner">
         <div className="emergency-banner-left">
           <div className="emergency-banner-icon" />
@@ -849,15 +1074,6 @@ function EmergencyOverlay({
         </div>
         <div className="emergency-banner-right">
           <span className="emergency-banner-score">{riskScore}</span>
-          {/*
-            ── ACK BUTTON ──────────────────────────────────────────────────
-            Clicking this calls onAck() which:
-              1. Immediately sets localAcked=true  → overlay vanishes at once
-              2. Fires acknowledgeAlert() to the backend in the background
-              3. On next poll, if no new critical alerts exist, stays dismissed
-              4. If a NEW critical alert arrives from the backend, localAcked
-                 resets to false and the overlay re-appears automatically
-          */}
           <button className="emergency-ack-btn" onClick={onAck}>
             ✓ ACKNOWLEDGE
           </button>
@@ -1068,7 +1284,7 @@ function MainChart({ patientName, chartData }: { patientName:string; chartData:a
           ))}
         </div>
       </div>
-      <div style={{height:360,padding:"16px 20px 10px"}}>
+      <div className="main-chart-height" style={{height:360,padding:"16px 20px 10px"}}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData} margin={{top:6,right:8,bottom:0,left:0}}>
             <defs>
@@ -1207,14 +1423,8 @@ export default function DashboardPage() {
   const clock = useClock();
   const [activeId, setActiveId] = useState<string>("");
   const [view, setView] = useState("chart");
+  const [railOpen, setRailOpen] = useState(false); // mobile rail toggle
 
-  /*
-   * localAcked — nurse clicked "✓ ACKNOWLEDGE" on the emergency banner.
-   * Immediately hides the overlay without waiting for the backend to confirm.
-   * Resets automatically when:
-   *   - The active patient changes (new patient = fresh alert state)
-   *   - A new unacknowledged critical alert arrives from the backend poll
-   */
   const [localAcked, setLocalAcked] = useState(false);
 
   const [railPatients, setRailPatients]   = useState<RailPatient[]>([]);
@@ -1253,13 +1463,10 @@ export default function DashboardPage() {
       try {
         const data = await getDashboardData(activeId);
         if (!cancelled) {
-          // If the backend returns a NEW unacknowledged critical alert,
-          // clear the local ack so the overlay re-appears for the nurse.
           const newCritical = (data.activeAlerts ?? []).some(
             (a: DashboardAlert) => a.severity === "high" && !a.acknowledged
           );
           if (newCritical) setLocalAcked(false);
-
           setDashboard(data);
           const score  = riskToScore(data.latestPrediction?.risk_score ?? 0);
           const status = severityToStatus(data.latestPrediction?.severity ?? "low");
@@ -1276,23 +1483,13 @@ export default function DashboardPage() {
 
   /* ── Acknowledge alert ──────────────────────── */
   async function handleAckAlert(alertId?: string) {
-    /*
-     * Step 1: Immediately suppress the emergency overlay.
-     * The UI responds at once — no waiting for the network.
-     */
     setLocalAcked(true);
-
-    /*
-     * Step 2: Fire the backend call in the background.
-     * If it fails we still keep the local ack — we don't want to
-     * re-alarm the nurse if the backend is momentarily unavailable.
-     */
     const first = alertId ?? activeAlerts.find((a: DashboardAlert) => !a.acknowledged && a._id)?._id;
     if (!first) return;
     try {
       await acknowledgeAlert(first);
       if (activeId) { const data = await getDashboardData(activeId); setDashboard(data); }
-    } catch { /* keep local ack — backend error should not re-trigger the alarm */ }
+    } catch { /* keep local ack */ }
   }
 
   /* ── Derived values ─────────────────────────── */
@@ -1310,14 +1507,6 @@ export default function DashboardPage() {
     (a: DashboardAlert) => a.severity === "high" && !a.acknowledged
   );
 
-  /*
-   * isEmergency:
-   *   true  → overlay fires (pulsing border, scan line, banner)
-   *   false → everything is calm
-   *
-   * localAcked lets the nurse dismiss instantly; the flag resets
-   * automatically if a genuinely new critical event comes in via the poll.
-   */
   const isEmergency = !localAcked && (riskScore >= 90 || hasUnackedCritical);
 
   const alertText = activeAlerts.length > 0
@@ -1346,11 +1535,6 @@ export default function DashboardPage() {
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
-      {/* ═══ EMERGENCY OVERLAY ═══════════════════════════════════════
-          Renders above everything. The overlay itself is pointer-events:none
-          so it never blocks clicks on the dashboard beneath it.
-          Only the banner strip (with the ACK button) captures pointer events.
-      ════════════════════════════════════════════════════════════════ */}
       <EmergencyOverlay
         active={isEmergency && !!activeId}
         riskScore={riskScore}
@@ -1386,11 +1570,29 @@ export default function DashboardPage() {
         {/* ── INTAKE BAR ──────────────────────── */}
         <PatientIntakeBar onRegistered={fetchPatients} />
 
+        {/* ── MOBILE RAIL TOGGLE ──────────────── */}
+        <div
+          className="rail-mobile-toggle"
+          onClick={() => setRailOpen(o => !o)}
+        >
+          <span className="rail-mobile-toggle-label">
+            PATIENTS · {railPatients.length}
+          </span>
+          {criticalCount > 0 && (
+            <span className="rail-mobile-toggle-count">
+              {criticalCount} CRITICAL
+            </span>
+          )}
+          <span className={`rail-mobile-toggle-arrow${railOpen ? " open" : ""}`}>
+            ▼
+          </span>
+        </div>
+
         {/* ── BODY ────────────────────────────── */}
         <div className="vigil-body">
 
           {/* ── RAIL ────────────────────────── */}
-          <aside className="rail">
+          <aside className={`rail${railOpen ? " rail-open" : ""}`}>
             <div className="rail-header">
               <span className="rail-unit">UNIT 3B · ICU</span>
               <span className="rail-time">{clock}</span>
@@ -1400,7 +1602,12 @@ export default function DashboardPage() {
               {!loadingList && listError && <div style={{padding:"16px 20px",fontFamily:"var(--f-mono)",fontSize:10,color:"var(--crimson)",letterSpacing:"0.12em",lineHeight:1.6}}>FETCH ERROR<br />{listError}</div>}
               {!loadingList && !listError && railPatients.length === 0 && <div style={{padding:"24px 20px",fontFamily:"var(--f-mono)",fontSize:11,color:"var(--t03)",letterSpacing:"0.14em",lineHeight:1.8}}>NO PATIENTS REGISTERED<br /><span style={{fontSize:10,color:"var(--t04)"}}>USE INTAKE FORM ABOVE</span></div>}
               {railPatients.map((p,i)=>(
-                <div key={p.patient_id} className={patientRowClass(p.riskScore,p.status,activeId,p.patient_id)} style={{animationDelay:`${i*40}ms`}} onClick={()=>setActiveId(p.patient_id)}>
+                <div
+                  key={p.patient_id}
+                  className={patientRowClass(p.riskScore,p.status,activeId,p.patient_id)}
+                  style={{animationDelay:`${i*40}ms`}}
+                  onClick={()=>{ setActiveId(p.patient_id); setRailOpen(false); }}
+                >
                   <div className="pr-top">
                     <span className="pr-id">{p.patient_id}</span>
                     <span className="pr-score" style={{color:scoreColor(p.riskScore)}}>{p.riskScore}</span>
