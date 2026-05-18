@@ -1,0 +1,56 @@
+/* ─────────────────────────────────────── */
+/* MOBILE OVERRIDES                        */
+/* ─────────────────────────────────────── */
+
+@media (max-width: 768px) {
+
+  /* ── Ghost section numbers ── */
+  /* Prevent overflow from large absolute-positioned numbers */
+  section {
+    overflow-x: hidden;
+  }
+
+  /* ── Right-panel border dividers ──
+     When 2-col grids stack to 1-col, the
+     borderLeft looks orphaned. Remove it. */
+  .mobile-no-border-left {
+    border-left: none !important;
+    padding-left: 0 !important;
+  }
+
+  /* ── Comparison grid ──
+     On very small screens the 3-col
+     "old | → | new" layout gets too tight */
+  .comparison-row {
+    grid-template-columns: 1fr 28px 1fr !important;
+  }
+
+  /* ── Footer bottom bar ──
+     right-justify on desktop, left on mobile */
+  .footer-bottom-right {
+    justify-self: start !important;
+  }
+
+  /* ── Section padding ── */
+  .tech-section-inner {
+    padding: 72px clamp(16px, 4vw, 24px) 80px !important;
+  }
+}
+
+@media (max-width: 480px) {
+
+  /* ── Comparison grid ──
+     Stack completely on very small screens */
+  .comparison-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .comparison-center-arrow {
+    display: none !important;
+  }
+
+  /* ── ContactForm submit button ── */
+  .contact-submit {
+    width: 100% !important;
+  }
+}

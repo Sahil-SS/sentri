@@ -84,8 +84,8 @@ export default function ContactSection() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 48,
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))",
+            gap: "clamp(24px, 3vw, 48px)",
             alignItems: "end",
             marginBottom: 72,
           }}
@@ -96,7 +96,7 @@ export default function ContactSection() {
               style={{
                 margin: 0,
                 fontFamily: "var(--f-cond)",
-                fontSize: "clamp(64px,8vw,128px)",
+                fontSize: "clamp(48px,8vw,128px)",
                 lineHeight: 0.9,
                 letterSpacing: "-0.05em",
                 color: "var(--t00)",
@@ -111,6 +111,7 @@ export default function ContactSection() {
 
           {/* RIGHT */}
           <div
+            className="mobile-no-border-left"
             style={{
               borderLeft: "1px solid var(--l01)",
               paddingLeft: 28,
@@ -139,8 +140,7 @@ export default function ContactSection() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns:
-              "minmax(0,1.1fr) minmax(320px,0.9fr)",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
             gap: 24,
           }}
         >

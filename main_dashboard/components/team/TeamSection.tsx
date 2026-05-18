@@ -84,8 +84,8 @@ export default function TeamSection() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 48,
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))",
+            gap: "clamp(24px, 3vw, 48px)",
             alignItems: "end",
             marginBottom: 64,
           }}
@@ -96,7 +96,7 @@ export default function TeamSection() {
               style={{
                 margin: 0,
                 fontFamily: "var(--f-cond)",
-                fontSize: "clamp(64px,8vw,128px)",
+                fontSize: "clamp(48px,8vw,128px)",
                 lineHeight: 0.9,
                 letterSpacing: "-0.05em",
                 color: "var(--t00)",
@@ -106,13 +106,12 @@ export default function TeamSection() {
               THE PEOPLE
               <br />
               BEHIND SENTRI
-              
-              
             </h2>
           </div>
 
           {/* RIGHT */}
           <div
+            className="mobile-no-border-left"
             style={{
               borderLeft: "1px solid var(--l01)",
               paddingLeft: 28,

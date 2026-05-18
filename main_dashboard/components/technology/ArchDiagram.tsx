@@ -391,7 +391,7 @@ export default function ArchDiagram() {
           style={{
             display: "grid",
             gridTemplateColumns:
-              "minmax(0,1.1fr) minmax(320px,0.9fr)",
+              "repeat(auto-fit, minmax(min(100%, 300px), 1fr))",
           }}
         >
           {/* LEFT SIDE */}
@@ -543,7 +543,7 @@ export default function ArchDiagram() {
               flexDirection: "column",
               justifyContent:
                 "space-between",
-              minHeight: 620,
+              minHeight: "clamp(300px, 50vh, 620px)",
             }}
           >
             {/* TOP */}

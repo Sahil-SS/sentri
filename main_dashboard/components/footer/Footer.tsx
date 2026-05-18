@@ -34,8 +34,7 @@ export default function Footer() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns:
-              "minmax(0,1fr) auto",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
             gap: 40,
             alignItems: "end",
             marginBottom: 72,
@@ -78,7 +77,7 @@ export default function Footer() {
               style={{
                 margin: 0,
                 fontFamily: "var(--f-cond)",
-                fontSize: "clamp(54px,7vw,120px)",
+                fontSize: "clamp(40px,7vw,120px)",
                 lineHeight: 0.88,
                 letterSpacing: "-0.05em",
                 color: "var(--t00)",
@@ -99,7 +98,7 @@ export default function Footer() {
             style={{
               display: "flex",
               flexDirection: "column",
-              alignItems: "flex-end",
+              alignItems: "flex-start",
               gap: 18,
             }}
           >
@@ -220,6 +219,7 @@ export default function Footer() {
 
           {/* right */}
           <div
+            className="footer-bottom-right"
             style={{
               justifySelf: "end",
             }}

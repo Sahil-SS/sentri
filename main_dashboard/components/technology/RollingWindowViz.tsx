@@ -172,7 +172,7 @@ export default function RollingWindowViz() {
           style={{
             display: "grid",
             gridTemplateColumns:
-              "1.1fr 0.9fr",
+              "repeat(auto-fit, minmax(min(100%, 300px), 1fr))",
           }}
         >
           {/* LEFT SIDE */}

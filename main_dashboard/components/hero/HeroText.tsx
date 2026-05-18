@@ -122,11 +122,11 @@ export default function HeroText() {
           animationDelay: "1200ms",
         }}
       >
-        <Link href="/dashboard">
+        <Link href="/dashboard" className="w-full sm:w-auto">
           <Button variant="primary-crit">Launch Demo →</Button>
         </Link>
 
-        <Link href="https://sentri-simu.vercel.app/">
+        <Link href="https://sentri-simu.vercel.app/" className="w-full sm:w-auto">
           <Button variant="primary-crit">Simulation Dashboard →</Button>
         </Link>
       </div>

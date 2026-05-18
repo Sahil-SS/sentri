@@ -72,8 +72,8 @@ export default function TechSection() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 48,
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
+            gap: "clamp(24px, 3vw, 48px)",
             marginBottom: 56,
             alignItems: "end",
           }}
@@ -114,7 +114,7 @@ export default function TechSection() {
                 margin: 0,
                 fontFamily: "var(--f-cond)",
                 fontWeight: 700,
-                fontSize: "clamp(64px,7vw,120px)",
+                fontSize: "clamp(48px,7vw,120px)",
                 lineHeight: 0.9,
                 letterSpacing: "-0.04em",
                 color: "var(--t00)",
@@ -131,6 +131,7 @@ export default function TechSection() {
 
           {/* RIGHT */}
           <div
+            className="mobile-no-border-left"
             style={{
               borderLeft: "1px solid var(--l01)",
               paddingLeft: 28,

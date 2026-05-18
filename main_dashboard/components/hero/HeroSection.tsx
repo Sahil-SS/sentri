@@ -59,14 +59,14 @@ export default function HeroSection() {
           minHeight: "calc(100vh - 56px)",
           gap: "clamp(16px, 2vw, 32px)",
           padding:
-            "clamp(24px,4vw,48px) clamp(24px,4vw,72px)",
+            "clamp(24px,4vw,48px) clamp(16px,4vw,72px)",
         }}
       >
         {/* LEFT */}
         <div
           style={{
             maxWidth: 640,
-            paddingRight: 24,
+            paddingRight: 0,
           }}
         >
           <HeroText />
@@ -74,9 +74,9 @@ export default function HeroSection() {
 
         {/* RIGHT */}
         <div
+          className="hidden lg:flex"
           style={{
             minHeight: 760,
-            display: "flex",
             alignItems: "center",
             justifyContent: "center",
             position: "relative",
