@@ -700,15 +700,26 @@ const CSS = `
     .emergency-banner {
       top: 52px;
       height: auto;
-      min-height: 48px;
+      max-height: 120px;
+      overflow: hidden;
       padding: 10px 14px;
-      flex-wrap: wrap;
+      flex-direction: column;
+      align-items: stretch;
       gap: 8px;
     }
-    .emergency-banner-left { flex-wrap: wrap; gap: 8px; }
-    .emergency-banner-message { width: 100%; white-space: normal; }
-    .emergency-banner-score { font-size: 22px; }
-    .emergency-ack-btn { height: 30px; padding: 0 14px; font-size: 12px; }
+    .emergency-banner-left { flex-wrap: nowrap; gap: 6px; overflow: hidden; flex-shrink: 1; min-height: 0; }
+    .emergency-banner-message { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; flex-shrink: 1; }
+    .emergency-banner-right {
+      display: flex !important;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+      flex-shrink: 0;
+    }
+    .emergency-banner-score { font-size: 20px; }
+    .emergency-ack-btn { height: 36px; padding: 0 16px; font-size: 13px; flex: 1; animation: none; border: 2px solid rgba(255,255,255,0.9); }
+    .vigil-shell.emergency-active { padding-top: 120px; }
 
     /* ── INTAKE BAR ── */
     .intake-bar-collapsed { padding: 0 14px; }
