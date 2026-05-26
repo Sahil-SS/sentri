@@ -668,10 +668,77 @@ Sentri is an educational and demonstration project developed for a student hacka
 
 ## Team
 
-**Team H2Edge** — NMIT Hacks Hackathon 2026
-Nitte Meenakshi Institute of Technology, Bengaluru, India
+<div align="center">
 
----
+# Team H2Edge
+
+### Building AI Systems for Critical Care Monitoring and Clinical Escalation
+
+<br/>
+
+<table>
+<tr>
+
+<td width="25%" valign="top">
+
+### Sahil Sinha  
+**ML Engineering & AI Systems**
+
+- End-to-end XGBoost training pipeline  
+- Temporal feature engineering  
+- FastAPI AI inference backend  
+- SHAP explainability integration  
+- ML prediction orchestration  
+
+</td>
+
+<td width="25%" valign="top">
+
+### Sneha Kumari  
+**Frontend Systems & Simulation UX**
+
+- Simulation dashboard frontend  
+- Clinical monitoring interface  
+- Operational UX design  
+- Component architecture  
+- Real-time visualization systems  
+
+</td>
+
+<td width="25%" valign="top">
+
+### Atharv Verma  
+**Backend Systems & Infrastructure**
+
+- Node.js backend architecture  
+- MongoDB integration  
+- REST API development  
+- System integration workflows  
+- Deployment and backend orchestration  
+
+</td>
+
+<td width="25%" valign="top">
+
+### Tanay Gujarathi  
+**UI Design & Frontend Architecture**
+
+- End-to-end frontend development  
+- Clinical UI/UX system design  
+- Main monitoring dashboard  
+- Design direction and visual systems  
+- Medical workflow research  
+
+</td>
+
+</tr>
+</table>
+
+<br/>
+
+**Dayananda Sagar College of Engineering, Bengaluru**
+
+</div>
 
 <div align="center">
 
