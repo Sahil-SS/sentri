@@ -102,7 +102,7 @@ The platform is composed of four independently deployable services that communic
 
 <div align="center">
 
-<img src="./docs/system-architecture.jpg" alt="Sentri System Architecture" width="100%"/>
+<img src="./docs/system-architecture.jpg" alt="Sentri System Architecture" width="70%"/>
 
 <br/>
 <br/>
